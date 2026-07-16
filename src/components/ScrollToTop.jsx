@@ -1,5 +1,7 @@
+"use client";
+
 import { useEffect } from "react";
-import { useLocation, useNavigationType } from "react-router-dom";
+import { usePathname, useSearchParams } from "next/navigation";
 
 const getHashId = (hash) => {
   const rawId = hash.slice(1);
@@ -12,13 +14,16 @@ const getHashId = (hash) => {
 };
 
 export default function ScrollToTop() {
-  const { pathname, hash } = useLocation();
-  const navigationType = useNavigationType();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const hash = typeof window !== 'undefined'
+    ? searchParams.get("hash") || window.location.hash
+    : searchParams.get("hash");
 
   useEffect(() => {
-    if (navigationType === "POP") return;
+    if (!pathname) return;
 
-    if (hash) {
+    if (hash && typeof window !== 'undefined') {
       const id = getHashId(hash);
       const timer = window.setTimeout(() => {
         document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -26,8 +31,10 @@ export default function ScrollToTop() {
       return () => window.clearTimeout(timer);
     }
 
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-  }, [pathname, hash, navigationType]);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }, [pathname, hash]);
 
   return null;
 }

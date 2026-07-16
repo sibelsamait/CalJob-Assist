@@ -1,23 +1,34 @@
 "use client";
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = typeof window !== 'undefined' && SUPABASE_URL && SUPABASE_ANON_KEY
+  ? createBrowserSupabaseClient({ supabaseUrl: SUPABASE_URL, supabaseKey: SUPABASE_ANON_KEY })
+  : null;
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  const [supabaseClient] = useState(() => {
+    if (typeof window === 'undefined' || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      return null;
+    }
+
+    return createBrowserSupabaseClient({ supabaseUrl: SUPABASE_URL, supabaseKey: SUPABASE_ANON_KEY });
+  });
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchProfile = async (userId) => {
-    const { data } = await supabase
+    if (!supabaseClient) return;
+
+    const { data } = await supabaseClient
       .from('profiles')
       .select('*')
       .eq('id', userId)
@@ -26,7 +37,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    if (!supabaseClient) {
+      setIsLoading(false);
+      return;
+    }
+
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
       const u = session?.user ?? null;
       setUser(u);
       setIsAuthenticated(!!u);
@@ -34,7 +50,7 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
       async (_event, session) => {
         const u = session?.user ?? null;
         setUser(u);
@@ -46,11 +62,13 @@ export const AuthProvider = ({ children }) => {
     );
 
     return () => subscription?.unsubscribe();
-  }, []);
+  }, [supabase]);
 
-  const signOut = () => supabase.auth.signOut();
+  const signOut = async () => {
+    if (!supabaseClient) return;
+    await supabaseClient.auth.signOut();
+  };
 
-  // role helpers
   const isAdmin = profile?.role === 'admin';
   const isTecnico = profile?.role === 'tecnico';
   const isStaff = isAdmin || isTecnico;

@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-// import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import SearchHistory from "@/components/SearchHistory";
 import {
   Scale, Calculator, CalendarClock, BookOpen, FileText,
   Shield, TrendingUp, Lock, CheckCircle2, Loader2,
@@ -19,34 +19,93 @@ export default function Home() {
   const [indicators, setIndicators] = useState([]);
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(null);
+  const [entityType, setEntityType] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [checkoutMessage, setCheckoutMessage] = useState("");
 
-  const handleCheckout = async (planKey) => {
-    if (window.self !== window.top) {
-      alert('El pago solo está disponible desde la aplicación publicada. Por favor, abre la app en una pestaña completa.');
-      return;
-    }
-    setCheckoutLoading(planKey);
-    // try {
-    //   const response = await base44.functions.invoke('createCheckout', {
-    //     plan: planKey,
-    //     success_url: window.location.origin + '/?success=1',
-    //     cancel_url: window.location.origin + '/',
-    //   });
-    //   if (response.data?.url) window.location.href = response.data.url;
-    // } catch (e) {
-    //   alert('Error al iniciar el pago: ' + e.message);
-    // } finally {
-    //   setCheckoutLoading(null);
-    // }
+  const ENTITY_TYPES = [
+    { value: "natural_person", label: "Persona natural" },
+    { value: "private_company", label: "Empresa privada" },
+    { value: "public_entity", label: "Organismo público" },
+  ];
+
+  const PAYMENT_METHOD_OPTIONS = {
+    natural_person: [
+      { value: "webpay_plus", label: "Webpay Plus" },
+      { value: "mercado_pago", label: "Mercado Pago" },
+      { value: "flow", label: "Flow" },
+      { value: "stripe", label: "Stripe" },
+      { value: "paypal", label: "PayPal" },
+    ],
+    private_company: [
+      { value: "transferencia", label: "Transferencia bancaria" },
+      { value: "factura_dte", label: "Factura Electrónica (DTE)" },
+      { value: "orden_compra", label: "Orden de Compra" },
+      { value: "webpay", label: "Webpay (opcional)" },
+    ],
+    public_entity: [
+      { value: "factura_dte", label: "Factura Electrónica (DTE)" },
+      { value: "orden_compra", label: "Orden de Compra" },
+      { value: "transferencia", label: "Transferencia bancaria" },
+      { value: "tgr_sigfe_dipres", label: "TGR / SIGFE / DIPRES" },
+    ],
   };
 
   useEffect(() => {
-    setLoading(false)
-    // base44.entities.EconomicIndicator.list('-date', 6)
-    //   .then(d => setIndicators(d || []))
-    //   .catch(() => {})
-    //   .finally(() => setLoading(false));
-  }, []);
+    setLoading(false);
+    if (!entityType) {
+      setPaymentMethod("");
+      return;
+    }
+    const methods = PAYMENT_METHOD_OPTIONS[entityType] || [];
+    setPaymentMethod(methods[0]?.value || "");
+  }, [entityType]);
+
+  const handleCheckout = async (planKey) => {
+    if (typeof window !== 'undefined' && window.self !== window.top) {
+      alert('El pago solo está disponible desde la aplicación publicada. Por favor, abre la app en una pestaña completa.');
+      return;
+    }
+
+    if (!entityType) {
+      setCheckoutMessage('Seleccione el tipo de entidad antes de continuar.');
+      return;
+    }
+
+    if (!paymentMethod) {
+      setCheckoutMessage('Seleccione un método de pago válido.');
+      return;
+    }
+
+    setCheckoutMessage("");
+    setCheckoutLoading(planKey);
+
+    try {
+      const response = await fetch('/api/payments/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planKey, entityType, paymentMethod }),
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result?.error || 'Error al iniciar el pago.');
+      }
+
+      if (result.checkoutUrl) {
+        if (typeof window !== 'undefined') {
+          window.location.href = result.checkoutUrl;
+        }
+        return;
+      }
+
+      setCheckoutMessage(result.message || 'Tu solicitud se ha registrado correctamente.');
+    } catch (error) {
+      setCheckoutMessage(error?.message || 'Error en la solicitud de pago.');
+    } finally {
+      setCheckoutLoading(null);
+    }
+  };
 
   const servicios = [
     { icon: Calculator, titulo: "Motor de Cálculo Laboral", desc: "Indemnización por años de servicio, aviso previo y feriado proporcional con topes legales de 90 UF y 11 años (Arts. 162, 163, 73 CT)." },
@@ -177,6 +236,67 @@ export default function Home() {
               <div className="mt-4 pt-4 border-t border-white/10">
                 <p className="text-[10px] text-blue-400">Fuente: Banco Central de Chile · mindicador.cl · Actualización diaria automática</p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-10 bg-slate-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+            <div className="space-y-6">
+              <div className="rounded-3xl border border-border bg-white p-6 shadow-sm">
+                <div className="flex items-center justify-between gap-4 mb-4">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.36em] text-muted-foreground">Paso 1</p>
+                    <h3 className="text-xl font-semibold text-foreground">Selecciona el tipo de entidad</h3>
+                  </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {ENTITY_TYPES.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setEntityType(option.value)}
+                      className={`rounded-2xl border p-4 text-left transition ${entityType === option.value ? 'border-primary bg-primary/5 shadow-sm' : 'border-border bg-white hover:border-primary'}`}>
+                      <p className="text-sm font-semibold text-foreground">{option.label}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Ajustaremos el método de pago al flujo correspondiente.</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-border bg-white p-6 shadow-sm">
+                <div className="flex items-center justify-between gap-4 mb-4">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.36em] text-muted-foreground">Paso 2</p>
+                    <h3 className="text-xl font-semibold text-foreground">Método de pago recomendado</h3>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">Los métodos se adaptan según tu tipo de entidad. Elige uno para activar el plan con el flujo correspondiente.</p>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Método de pago</label>
+                    <select
+                      value={paymentMethod}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      disabled={!entityType}
+                      className="w-full rounded-2xl border border-border bg-white px-4 py-3 text-sm text-foreground outline-none focus:border-primary"
+                    >
+                      <option value="">{entityType ? 'Selecciona un método de pago' : 'Selecciona el tipo de entidad primero'}</option>
+                      {(PAYMENT_METHOD_OPTIONS[entityType] || []).map((method) => (
+                        <option key={method.value} value={method.value}>{method.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {checkoutMessage ? (
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">{checkoutMessage}</div>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+            <div>
+              <SearchHistory />
             </div>
           </div>
         </div>

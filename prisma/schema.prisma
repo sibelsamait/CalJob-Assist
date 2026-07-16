@@ -1,0 +1,310 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String           @id @default(uuid())
+  email           String           @unique
+  emailVerified   Boolean          @default(false)
+  fullName        String?
+  phone           String?
+  role            Role             @default(USER)
+  companyId       String?
+  profile         Profile?         @relation(fields: [id], references: [id])
+  tickets         Ticket[]         @relation("ticketUser")
+  assignedTickets Ticket[]         @relation("ticketAssignee")
+  documents       Document[]
+  auditLogs       AuditLog[]
+  searchHistory   SearchHistory[]
+  paymentRequests PaymentRequest[]
+  licenses        License[]
+  invoices        Invoice[]
+  contracts       Contract[]
+  purchaseOrders  PurchaseOrder[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+enum Role {
+  ADMIN
+  TECNICO
+  USER_PERSONAL
+  USER_TEAM
+  USER_ENTERPRISE
+  USER_TEAM_ADDED
+  USER_ENTERPRISE_ADDED
+}
+
+model Profile {
+  id        String   @id
+  user      User     @relation(fields: [id], references: [id])
+  plan      Plan     @default(PERSONAL)
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Plan {
+  PERSONAL
+  TEAM
+  ENTERPRISE
+  TRIAL
+  INTERNAL
+}
+
+model Company {
+  id            String           @id @default(uuid())
+  name          String
+  rut           String           @unique
+  contactEmail  String?
+  plan          Plan             @default(PERSONAL)
+  status        CompanyStatus    @default(TRIAL)
+  usersCount    Int              @default(0)
+  subscriptions Subscription[]
+  tickets       Ticket[]
+  documents     Document[]
+  licenses      License[]
+  invoices      Invoice[]
+  purchaseOrders PurchaseOrder[]
+  contracts     Contract[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}
+
+enum CompanyStatus {
+  ACTIVE
+  TRIAL
+  SUSPENDED
+  INACTIVE
+}
+
+model Subscription {
+  id         String    @id @default(uuid())
+  companyId  String
+  company    Company   @relation(fields: [companyId], references: [id])
+  plan       Plan
+  amount     Int
+  status     SubscriptionStatus
+  period     String?
+  stripePiId String?   @map("stripe_pi_id")
+  paidAt     DateTime? @map("paid_at")
+  refundedAt DateTime? @map("refunded_at")
+  notes      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  PAID
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+model Ticket {
+  id           String    @id @default(uuid())
+  companyId    String?
+  company      Company?  @relation(fields: [companyId], references: [id])
+  userId       String?
+  user         User?     @relation("ticketUser", fields: [userId], references: [id])
+  userEmail    String?
+  subject      String
+  description  String
+  status       TicketStatus @default(OPEN)
+  priority     TicketPriority @default(MEDIUM)
+  resolution   String?
+  assignedToId String?
+  assignedTo   User? @relation("ticketAssignee", fields: [assignedToId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String
+  entity     String?
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now())
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  type        String
+  title       String
+  storagePath String   @map("storage_path")
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SearchHistory {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  queryType  String
+  queryText  String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+}
+
+model PaymentRequest {
+  id            String               @id @default(uuid())
+  userId        String
+  user          User                 @relation(fields: [userId], references: [id])
+  companyId     String?
+  company       Company?             @relation(fields: [companyId], references: [id])
+  planKey       String
+  entityType    EntityType
+  paymentMethod String
+  status        PaymentRequestStatus @default(PENDING_PAYMENT)
+  metadata      Json?
+  amount        Int?
+  currency      String               @default("CLP")
+  externalId    String?
+  checkoutUrl   String?
+  expiresAt     DateTime?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+}
+
+enum EntityType {
+  NATURAL_PERSON
+  PRIVATE_COMPANY
+  PUBLIC_ENTITY
+}
+
+enum PaymentRequestStatus {
+  PENDING_PAYMENT
+  PENDING_APPROVAL
+  PENDING_CONTRACT
+  AUTHORIZED
+  FAILED
+  CANCELLED
+  COMPLETED
+}
+
+model License {
+  id         String        @id @default(uuid())
+  companyId  String
+  company    Company       @relation(fields: [companyId], references: [id])
+  userId     String?
+  user       User?         @relation(fields: [userId], references: [id])
+  plan       Plan
+  status     LicenseStatus @default(ACTIVE)
+  startsAt   DateTime?
+  endsAt     DateTime?
+  metadata   Json?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+enum LicenseStatus {
+  ACTIVE
+  EXPIRED
+  SUSPENDED
+  REVOKED
+  PENDING
+}
+
+model Contract {
+  id          String         @id @default(uuid())
+  companyId   String
+  company     Company        @relation(fields: [companyId], references: [id])
+  title       String
+  description String?
+  status      ContractStatus @default(DRAFT)
+  amount      Int?
+  currency    String         @default("CLP")
+  agreementUrl String?
+  signedAt    DateTime?
+  metadata    Json?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+enum ContractStatus {
+  DRAFT
+  PENDING_SIGNATURE
+  SIGNED
+  CANCELLED
+}
+
+model PurchaseOrder {
+  id            String               @id @default(uuid())
+  contractId    String?
+  contract      Contract?            @relation(fields: [contractId], references: [id])
+  companyId     String
+  company       Company              @relation(fields: [companyId], references: [id])
+  orderNumber   String               @unique
+  status        PurchaseOrderStatus  @default(PENDING_REVIEW)
+  totalAmount   Int
+  currency      String               @default("CLP")
+  metadata      Json?
+  issuedAt      DateTime?
+  dueDate       DateTime?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+}
+
+enum PurchaseOrderStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+model Invoice {
+  id             String         @id @default(uuid())
+  companyId      String
+  company        Company        @relation(fields: [companyId], references: [id])
+  purchaseOrderId String?       @map("purchase_order_id")
+  purchaseOrder  PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  number         String         @unique
+  status         InvoiceStatus  @default(DRAFT)
+  issueDate      DateTime?
+  dueDate        DateTime?
+  totalAmount    Int
+  currency       String         @default("CLP")
+  pdfPath        String?
+  metadata       Json?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  OVERDUE
+  CANCELLED
+}

@@ -66,14 +66,162 @@ create table if not exists public.subscriptions (
   paid_at      timestamptz,
   refunded_at  timestamptz,
   notes        text,
-  created_at   timestamptz not null default now()
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
 );
 alter table public.subscriptions enable row level security;
 create policy "staff_all_subs" on public.subscriptions for all using (
   exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('admin','tecnico'))
 );
+create policy "company_subscriptions" on public.subscriptions for select using (
+  company_id in (select company_id from public.profiles where id = auth.uid())
+);
 
--- 4. SUPPORT TICKETS
+-- 4. PAYMENT REQUESTS
+create table if not exists public.payment_requests (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null references auth.users(id) on delete cascade,
+  company_id    uuid references public.companies(id) on delete set null,
+  plan_key      text not null,
+  entity_type   text not null check (entity_type in ('natural_person','private_company','public_entity')),
+  payment_method text not null,
+  status        text not null default 'pending_payment' check (status in ('pending_payment','pending_approval','pending_contract','authorized','failed','cancelled','completed')),
+  amount        int,
+  currency      text not null default 'CLP',
+  external_id   text,
+  checkout_url  text,
+  expires_at    timestamptz,
+  metadata      jsonb,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+alter table public.payment_requests enable row level security;
+create policy "insert_payment_request" on public.payment_requests for insert with check (user_id = auth.uid());
+create policy "select_own_payment_requests" on public.payment_requests for select using (user_id = auth.uid());
+create policy "staff_all_payment_requests" on public.payment_requests for all using (
+  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('admin','tecnico'))
+);
+
+-- 5. SEARCH HISTORY
+create table if not exists public.search_history (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  query_type  text not null,
+  query_text  text not null,
+  metadata    jsonb,
+  created_at  timestamptz not null default now()
+);
+alter table public.search_history enable row level security;
+create policy "user_search_history" on public.search_history for select using (user_id = auth.uid());
+create policy "insert_search_history" on public.search_history for insert with check (user_id = auth.uid());
+create policy "staff_all_search_history" on public.search_history for all using (
+  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('admin','tecnico'))
+);
+
+-- 6. LICENSES
+create table if not exists public.licenses (
+  id          uuid primary key default gen_random_uuid(),
+  company_id  uuid not null references public.companies(id) on delete cascade,
+  user_id     uuid references auth.users(id) on delete set null,
+  plan        text not null,
+  status      text not null default 'active' check (status in ('active','expired','suspended','revoked','pending')),
+  starts_at   timestamptz,
+  ends_at     timestamptz,
+  metadata    jsonb,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+alter table public.licenses enable row level security;
+create policy "company_license_select" on public.licenses for select using (
+  company_id in (select company_id from public.profiles where id = auth.uid())
+);
+create policy "company_license_insert" on public.licenses for insert with check (
+  company_id in (select company_id from public.profiles where id = auth.uid())
+);
+create policy "staff_all_licenses" on public.licenses for all using (
+  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('admin','tecnico'))
+);
+
+-- 7. CONTRACTS
+create table if not exists public.contracts (
+  id           uuid primary key default gen_random_uuid(),
+  company_id   uuid not null references public.companies(id) on delete cascade,
+  title        text not null,
+  description  text,
+  status       text not null default 'draft' check (status in ('draft','pending_signature','signed','cancelled')),
+  amount       int,
+  currency     text not null default 'CLP',
+  agreement_url text,
+  signed_at    timestamptz,
+  metadata     jsonb,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+alter table public.contracts enable row level security;
+create policy "company_contract_select" on public.contracts for select using (
+  company_id in (select company_id from public.profiles where id = auth.uid())
+);
+create policy "company_contract_insert" on public.contracts for insert with check (
+  company_id in (select company_id from public.profiles where id = auth.uid())
+);
+create policy "staff_all_contracts" on public.contracts for all using (
+  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('admin','tecnico'))
+);
+
+-- 8. PURCHASE ORDERS
+create table if not exists public.purchase_orders (
+  id            uuid primary key default gen_random_uuid(),
+  contract_id   uuid references public.contracts(id) on delete set null,
+  company_id    uuid not null references public.companies(id) on delete cascade,
+  order_number  text unique not null,
+  status        text not null default 'pending_review' check (status in ('pending_review','approved','rejected','completed','cancelled')),
+  total_amount  int not null,
+  currency      text not null default 'CLP',
+  metadata      jsonb,
+  issued_at     timestamptz,
+  due_date      timestamptz,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+alter table public.purchase_orders enable row level security;
+create policy "company_po_select" on public.purchase_orders for select using (
+  company_id in (select company_id from public.profiles where id = auth.uid())
+);
+create policy "company_po_insert" on public.purchase_orders for insert with check (
+  company_id in (select company_id from public.profiles where id = auth.uid())
+);
+create policy "staff_all_purchase_orders" on public.purchase_orders for all using (
+  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('admin','tecnico'))
+);
+
+-- 9. INVOICES
+create table if not exists public.invoices (
+  id               uuid primary key default gen_random_uuid(),
+  company_id        uuid not null references public.companies(id) on delete cascade,
+  purchase_order_id uuid references public.purchase_orders(id) on delete set null,
+  number           text unique not null,
+  status           text not null default 'draft' check (status in ('draft','issued','paid','overdue','cancelled')),
+  issue_date       timestamptz,
+  due_date         timestamptz,
+  total_amount     int not null,
+  currency         text not null default 'CLP',
+  pdf_path         text,
+  metadata         jsonb,
+  created_at       timestamptz not null default now(),
+  updated_at       timestamptz not null default now()
+);
+alter table public.invoices enable row level security;
+create policy "company_invoice_select" on public.invoices for select using (
+  company_id in (select company_id from public.profiles where id = auth.uid())
+);
+create policy "company_invoice_insert" on public.invoices for insert with check (
+  company_id in (select company_id from public.profiles where id = auth.uid())
+);
+create policy "staff_all_invoices" on public.invoices for all using (
+  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('admin','tecnico'))
+);
+
+-- 10. SUPPORT TICKETS
 create table if not exists public.tickets (
   id           uuid primary key default gen_random_uuid(),
   company_id   uuid references public.companies(id) on delete set null,
