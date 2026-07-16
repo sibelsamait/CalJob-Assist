@@ -1,5 +1,8 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import Link from "next/link";
+// import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -23,25 +26,26 @@ export default function Home() {
       return;
     }
     setCheckoutLoading(planKey);
-    try {
-      const response = await base44.functions.invoke('createCheckout', {
-        plan: planKey,
-        success_url: window.location.origin + '/?success=1',
-        cancel_url: window.location.origin + '/',
-      });
-      if (response.data?.url) window.location.href = response.data.url;
-    } catch (e) {
-      alert('Error al iniciar el pago: ' + e.message);
-    } finally {
-      setCheckoutLoading(null);
-    }
+    // try {
+    //   const response = await base44.functions.invoke('createCheckout', {
+    //     plan: planKey,
+    //     success_url: window.location.origin + '/?success=1',
+    //     cancel_url: window.location.origin + '/',
+    //   });
+    //   if (response.data?.url) window.location.href = response.data.url;
+    // } catch (e) {
+    //   alert('Error al iniciar el pago: ' + e.message);
+    // } finally {
+    //   setCheckoutLoading(null);
+    // }
   };
 
   useEffect(() => {
-    base44.entities.EconomicIndicator.list('-date', 6)
-      .then(d => setIndicators(d || []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    setLoading(false)
+    // base44.entities.EconomicIndicator.list('-date', 6)
+    //   .then(d => setIndicators(d || []))
+    //   .catch(() => {})
+    //   .finally(() => setLoading(false));
   }, []);
 
   const servicios = [
@@ -105,9 +109,11 @@ export default function Home() {
             <a href="#servicios" className="text-sm text-blue-100 hover:text-white transition-colors">Servicios</a>
             <a href="#planes" className="text-sm text-blue-100 hover:text-white transition-colors">Planes</a>
             <a href="#contacto" className="text-sm text-blue-100 hover:text-white transition-colors">Contacto</a>
-            <Button size="sm" className="bg-accent hover:bg-red-700 text-white border-0 rounded-sm">
-              Ingresar
-            </Button>
+            <Link href="/login">
+              <Button size="sm" className="bg-accent hover:bg-red-700 text-white border-0 rounded-sm">
+                Ingresar
+              </Button>
+            </Link>
           </nav>
         </div>
       </header>
