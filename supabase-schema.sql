@@ -258,6 +258,26 @@ alter table public.audit_log enable row level security;
 create policy "staff_all_audit" on public.audit_log for select using (
   exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('admin','tecnico'))
 );
+
+-- 11. WEBHOOK DELIVERIES (monitor + retries)
+create table if not exists public.webhook_deliveries (
+  id           uuid primary key default gen_random_uuid(),
+  provider     text not null,
+  endpoint     text not null,
+  payload      jsonb,
+  headers      jsonb,
+  status       text not null default 'pending' check (status in ('pending','delivered','failed')),
+  attempts     int not null default 0,
+  last_error   text,
+  delivered_at timestamptz,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+alter table public.webhook_deliveries enable row level security;
+create policy "staff_all_webhooks" on public.webhook_deliveries for all using (
+  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('admin','tecnico'))
+);
+
 create policy "insert_own_audit" on public.audit_log for insert with check (user_id = auth.uid());
 
 -- 6. DOCUMENTS (PDFs generados)

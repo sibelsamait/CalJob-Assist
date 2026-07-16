@@ -1,0 +1,22 @@
+name: Webhook Retry
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # every 15 minutes
+  workflow_dispatch: {}
+
+jobs:
+  retry-webhooks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call webhook drive endpoint
+        env:
+          BASE_URL: ${{ secrets.WEBHOOK_RETRY_BASE_URL }}
+          TOKEN: ${{ secrets.WEBHOOK_RETRY_TOKEN }}
+        run: |
+          if [ -z "$BASE_URL" ]; then
+            echo "WEBHOOK_RETRY_BASE_URL secret not set; skipping.";
+            exit 0;
+          fi
+          echo "Posting to $BASE_URL/api/webhooks/drive"
+          curl -sS -X POST "$BASE_URL/api/webhooks/drive" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{}' || true

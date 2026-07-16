@@ -19,6 +19,14 @@ Este documento resume dónde obtener las credenciales necesarias para poner CalJ
   - En desarrollo usa modos de prueba y certificados sandbox.
   - Añadir las URLs de notificación en el panel de Transbank; en producción debes validar con el SDK.
   - Variables de entorno sugeridas: `WEBPAY_MALL_ID`, `WEBPAY_API_KEY` (ya en `.env.example`).
+    - Variables de entorno recomendadas para este proyecto:
+      - `WEBPAY_COMMERCE_CODE` — código de comercio (production)
+      - `WEBPAY_API_KEY` — clave privada/API Key
+      - `WEBPAY_ENV` — `INTEGRATION` o `PRODUCTION`
+
+    - Para la tarea de reintentos automáticos que ejecuta el workflow del repo:
+      - `WEBHOOK_RETRY_BASE_URL` — URL base del sitio (ej: https://mi-dominio.com)
+      - `WEBHOOK_RETRY_TOKEN` — token secreto usado por el workflow para autenticar la petición a `/api/webhooks/retry`
 
 ## Mercado Pago
 - Crear cuenta en https://www.mercadopago.com
@@ -46,6 +54,10 @@ Este documento resume dónde obtener las credenciales necesarias para poner CalJ
 - Programar job diario (Vercel Cron / GitHub Actions) que llame a:
   `POST https://<tu-dominio>/api/payments/cron/subscriptions`
 - Activar HTTPS y dominios válidos para que PayPal/Transbank acepten las notificaciones.
+
+## Webhook retry / monitorización
+- Asegúrate de añadir los secrets `WEBHOOK_RETRY_BASE_URL` y `WEBHOOK_RETRY_TOKEN` en GitHub Secrets para permitir que
+  el workflow `.github/workflows/webhook-retry.yml` ejecute reintentos periódicos. El endpoint espera un `Authorization: Bearer <token>`.
 
 ---
 

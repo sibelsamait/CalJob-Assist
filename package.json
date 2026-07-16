@@ -78,9 +78,12 @@
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
-    "prisma:migrate:chile-payments": "prisma migrate dev --name chile-payments"
+    "prisma:migrate:chile-payments": "prisma migrate dev --name chile-payments",
+    "test:e2e": "playwright test --project=chromium",
+    "test:e2e:headed": "playwright test --headed"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
     "prisma": "^5.14.0",
     "eslint-config-next": "14.2.3",
     "@eslint/js": "^9.19.0",
