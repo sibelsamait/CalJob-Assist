@@ -26,6 +26,13 @@ export async function POST(request) {
     const supabase = getSupabaseServer();
     if (!supabase) return NextResponse.json({ error: 'Supabase not available' }, { status: 500 });
 
+    // Record webhook for monitoring and idempotency
+    try {
+      await supabase.from('webhook_deliveries').insert({ provider: 'mercadopago', endpoint: '/api/payments/webhook/mercadopago', payload, headers: {}, status: 'pending' });
+    } catch (e) {
+      // ignore monitoring failures
+    }
+
     // attempt to find payment_request by external id or custom id
     const externalId = payment.id || payment.order?.id || payment.collection_id;
     const custom = payment.metadata?.custom_id || payment.external_reference || payment.order?.type;

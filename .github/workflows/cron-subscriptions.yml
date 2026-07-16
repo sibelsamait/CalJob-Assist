@@ -1,0 +1,21 @@
+name: Cron - expire subscriptions
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # daily at 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  expire-subs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call subscriptions cron endpoint
+        env:
+          BASE_URL: ${{ secrets.CRON_BASE_URL }}
+          TOKEN: ${{ secrets.CRON_TOKEN }}
+        run: |
+          if [ -z "$BASE_URL" ]; then
+            echo "CRON_BASE_URL not set; skipping.";
+            exit 0;
+          fi
+          curl -sS -X POST "$BASE_URL/api/payments/cron/subscriptions" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{}' || true

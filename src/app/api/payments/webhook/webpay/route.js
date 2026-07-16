@@ -60,6 +60,13 @@ export async function POST(request) {
   const failedStates = ['FAILED', 'REJECTED', 'DENIED'];
   const newStatus = paidStates.includes(finalStatus) ? 'paid' : (failedStates.includes(finalStatus) ? 'failed' : 'pending');
 
+  // Record webhook for monitoring/observability (best-effort)
+  try {
+    await supabase.from('webhook_deliveries').insert({ provider: 'webpay', endpoint: '/api/payments/webhook/webpay', payload, headers: {}, status: 'pending' });
+  } catch (e) {
+    // ignore
+  }
+
   await supabase.from('payment_requests').update({ status: newStatus, provider: 'webpay', external_id: externalId || null, updated_at: new Date().toISOString() }).eq('id', requestId);
 
   if (newStatus === 'paid') {
