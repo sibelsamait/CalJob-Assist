@@ -1,0 +1,114 @@
+{
+  "name": "LaborLaw",
+  "type": "object",
+  "properties": {
+    "law_number": {
+      "type": "string",
+      "description": "N\u00famero de ley o norma (ej: 21.643)"
+    },
+    "law_code": {
+      "type": "string",
+      "description": "C\u00f3digo corto de referencia (ej: CT-159, Ley-Karin)"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo oficial de la ley o norma"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "codigo_del_trabajo",
+        "seguridad_social",
+        "higiene_seguridad",
+        "derechos_fundamentales",
+        "negociacion_colectiva",
+        "proteccion_datos",
+        "estatuto_administrativo",
+        "reglamentos",
+        "otros"
+      ],
+      "description": "Categor\u00eda normativa"
+    },
+    "topic": {
+      "type": "string",
+      "description": "Tema principal (ej: despido, vacaciones, acoso, jornada)"
+    },
+    "article_number": {
+      "type": "string",
+      "description": "Art\u00edculo espec\u00edfico si aplica"
+    },
+    "publication_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "last_update_date": {
+      "type": "string",
+      "format": "date",
+      "description": "\u00daltima modificaci\u00f3n vigente"
+    },
+    "content": {
+      "type": "string",
+      "description": "Texto completo o resumen extenso del contenido normativo"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Resumen breve para resultados de b\u00fasqueda"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Palabras clave para indexaci\u00f3n"
+    },
+    "jurisdiction": {
+      "type": "string",
+      "default": "Chile"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "vigente",
+        "derogada",
+        "modificada",
+        "pendiente"
+      ],
+      "default": "vigente"
+    },
+    "source_url": {
+      "type": "string",
+      "description": "Enlace a fuente oficial (BCN, DT)"
+    },
+    "applicable_to": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A qui\u00e9nes aplica: trabajador, empleador, mediador, autoridad"
+    }
+  },
+  "required": [
+    "law_code",
+    "title",
+    "category",
+    "content"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

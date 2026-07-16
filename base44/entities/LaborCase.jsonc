@@ -1,0 +1,216 @@
+{
+  "name": "LaborCase",
+  "type": "object",
+  "properties": {
+    "case_type": {
+      "type": "string",
+      "enum": [
+        "ratificacion_finiquito",
+        "reclamo_despido",
+        "denuncia_laboral"
+      ],
+      "description": "Tipo de tr\u00e1mite laboral"
+    },
+    "case_number": {
+      "type": "string",
+      "description": "N\u00famero interno de caso"
+    },
+    "worker_name": {
+      "type": "string"
+    },
+    "worker_rut": {
+      "type": "string"
+    },
+    "company_name": {
+      "type": "string"
+    },
+    "company_rut": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "Aislamiento multi-tenant (RUT empresa o ID usuario personal)"
+    },
+    "contract_start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "contract_end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "dismissal_cause": {
+      "type": "string",
+      "description": "Causal legal de despido (art. 159, 160, 161 CT)"
+    },
+    "dismissal_article": {
+      "type": "string"
+    },
+    "last_monthly_remuneration": {
+      "type": "number",
+      "description": "\u00daltima remuneraci\u00f3n mensual (tope 90 UF)"
+    },
+    "variable_remunerations": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "description": "Remuneraciones variables \u00faltimos 3 meses"
+    },
+    "vacation_days_taken": {
+      "type": "number"
+    },
+    "provisional_debt_compliant": {
+      "type": "boolean",
+      "description": "Deudas previsionales al d\u00eda con comprobante"
+    },
+    "calculation_result": {
+      "type": "object",
+      "description": "Resultado del motor de c\u00e1lculo (indemnizaciones, feriado, etc.)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "borrador",
+        "aprobado_firma",
+        "rechazado_diferencias",
+        "citado_audiencia",
+        "derivado_fiscalizacion",
+        "cerrado"
+      ],
+      "default": "borrador"
+    },
+    "hearing_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "alta",
+        "media",
+        "baja"
+      ],
+      "default": "media",
+      "description": "Matriz de criticidad para denuncias"
+    },
+    "denounced_matters": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Materias denunciadas (horas extras, EPP, acoso, etc.)"
+    },
+    "inspector_route": {
+      "type": "string",
+      "description": "Hoja de ruta para fiscalizaci\u00f3n en terreno"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "case_type",
+    "worker_rut",
+    "company_rut",
+    "tenant_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "$and": [
+            {
+              "data.tenant_id": "{{user.data.tenant_id}}"
+            },
+            {
+              "data.tenant_id": {
+                "$ne": ""
+              }
+            }
+          ]
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "$and": [
+            {
+              "data.tenant_id": "{{user.data.tenant_id}}"
+            },
+            {
+              "data.tenant_id": {
+                "$ne": ""
+              }
+            }
+          ]
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "$and": [
+            {
+              "data.tenant_id": "{{user.data.tenant_id}}"
+            },
+            {
+              "data.tenant_id": {
+                "$ne": ""
+              }
+            }
+          ]
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "$and": [
+            {
+              "data.tenant_id": "{{user.data.tenant_id}}"
+            },
+            {
+              "data.tenant_id": {
+                "$ne": ""
+              }
+            }
+          ]
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

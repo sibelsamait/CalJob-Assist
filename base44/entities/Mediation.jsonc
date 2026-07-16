@@ -1,0 +1,222 @@
+{
+  "name": "Mediation",
+  "type": "object",
+  "properties": {
+    "mediation_type": {
+      "type": "string",
+      "enum": [
+        "negociacion_colectiva",
+        "vulneracion_derechos",
+        "ius_variandi"
+      ],
+      "description": "Tipo de mediaci\u00f3n"
+    },
+    "case_number": {
+      "type": "string"
+    },
+    "worker_name": {
+      "type": "string"
+    },
+    "worker_rut": {
+      "type": "string"
+    },
+    "company_name": {
+      "type": "string"
+    },
+    "company_rut": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "request_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de solicitud de mediaci\u00f3n"
+    },
+    "deadline_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha l\u00edmite del plazo legal (5 d\u00edas h\u00e1biles prorrogables)"
+    },
+    "deadline_extended": {
+      "type": "boolean",
+      "default": false
+    },
+    "company_offer": {
+      "type": "object",
+      "description": "\u00daltima oferta empresa: reajuste, bonos, cl\u00e1usulas"
+    },
+    "union_project": {
+      "type": "object",
+      "description": "Proyecto de contrato colectivo del sindicato"
+    },
+    "ipc_accumulated": {
+      "type": "number",
+      "description": "IPC acumulado para c\u00e1lculo de reajuste real"
+    },
+    "agreements": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Cl\u00e1usulas de acuerdo colectivo"
+    },
+    "commitments": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Compromisos con plazo de seguimiento (medidas de reparaci\u00f3n)"
+    },
+    "menoscabo_calculation": {
+      "type": "object",
+      "description": "C\u00e1lculo de menoscabo econ\u00f3mico y de tiempo"
+    },
+    "reparation_measures": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "\u00c1rbol de decisiones de medidas de reparaci\u00f3n"
+    },
+    "incident_history": {
+      "type": "string",
+      "description": "Relato de hechos para vulneraci\u00f3n de derechos"
+    },
+    "medical_licenses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "iniciada",
+        "en_proceso",
+        "acuerdo_logrado",
+        "sin_acuerdo",
+        "huelga_iniciada",
+        "cumplimiento_seguimiento",
+        "cerrada"
+      ],
+      "default": "iniciada"
+    },
+    "hearing_dates": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "date"
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "mediation_type",
+    "worker_rut",
+    "company_rut",
+    "tenant_id",
+    "request_date"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "$and": [
+            {
+              "data.tenant_id": "{{user.data.tenant_id}}"
+            },
+            {
+              "data.tenant_id": {
+                "$ne": ""
+              }
+            }
+          ]
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "$and": [
+            {
+              "data.tenant_id": "{{user.data.tenant_id}}"
+            },
+            {
+              "data.tenant_id": {
+                "$ne": ""
+              }
+            }
+          ]
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "$and": [
+            {
+              "data.tenant_id": "{{user.data.tenant_id}}"
+            },
+            {
+              "data.tenant_id": {
+                "$ne": ""
+              }
+            }
+          ]
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "$and": [
+            {
+              "data.tenant_id": "{{user.data.tenant_id}}"
+            },
+            {
+              "data.tenant_id": {
+                "$ne": ""
+              }
+            }
+          ]
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
