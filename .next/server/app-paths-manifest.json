@@ -9,13 +9,13 @@
   "/login/page": "app/login/page.js",
   "/page": "app/page.js",
   "/register/page": "app/register/page.js",
-  "/api/licenses/check/route": "app/api/licenses/check/route.js",
   "/api/payments/checkout/session/route": "app/api/payments/checkout/session/route.js",
-  "/api/payments/webhook/webpay/route": "app/api/payments/webhook/webpay/route.js",
   "/api/payments/paypal/subscriptions/[id]/route": "app/api/payments/paypal/subscriptions/[id]/route.js",
   "/api/payments/webhook/mercadopago/route": "app/api/payments/webhook/mercadopago/route.js",
-  "/api/payments/cron/subscriptions/route": "app/api/payments/cron/subscriptions/route.js",
+  "/api/licenses/check/route": "app/api/licenses/check/route.js",
   "/api/payments/webhook/paypal/route": "app/api/payments/webhook/paypal/route.js",
+  "/api/payments/cron/subscriptions/route": "app/api/payments/cron/subscriptions/route.js",
   "/payment-links/paypal/[id]/route": "app/payment-links/paypal/[id]/route.js",
+  "/api/payments/webhook/webpay/route": "app/api/payments/webhook/webpay/route.js",
   "/reset-password/page": "app/reset-password/page.js"
 }
