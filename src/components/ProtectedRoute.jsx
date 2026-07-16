@@ -23,6 +23,20 @@ export default function ProtectedRoute({ children, requireAdmin = false, require
     if (!isAuthenticated) { router.replace('/login'); return; }
     if (requireAdmin && !isAdmin) { router.replace('/'); return; }
     if (requireStaff && !isStaff) { router.replace('/'); return; }
+    // check active license/access
+    (async () => {
+      try {
+        const res = await fetch('/api/licenses/check');
+        if (res.ok) {
+          const json = await res.json();
+          if (!json.active) {
+            router.replace('/not-authorized');
+          }
+        }
+      } catch (e) {
+        // ignore network errors here
+      }
+    })();
   }, [isLoading, isAuthenticated, isAdmin, isStaff, requireAdmin, requireStaff, router]);
 
   if (isLoading || !isAuthenticated) return <Spinner />;

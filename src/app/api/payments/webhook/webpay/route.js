@@ -14,13 +14,10 @@ export async function POST(request) {
   const supabase = getSupabaseServer();
   if (!supabase) return NextResponse.json({ error: 'Supabase not available' }, { status: 500 });
 
-  const mappedStatus = (s) => {
-    if (['AUTHORIZED', 'SUCCESS', 'OK', 'COMPLETED'].includes(s)) return 'paid';
-    if (['FAILED', 'REJECTED', 'DENIED'].includes(s)) return 'failed';
-    return 'pending';
-  };
-
-  const newStatus = mappedStatus(status);
+  // Map provider status to internal statuses (use Transbank SDK in production for signature validation)
+  const paidStates = ['AUTHORIZED', 'SUCCESS', 'OK', 'COMPLETED'];
+  const failedStates = ['FAILED', 'REJECTED', 'DENIED'];
+  const newStatus = paidStates.includes(status) ? 'paid' : (failedStates.includes(status) ? 'failed' : 'pending');
 
   await supabase.from('payment_requests').update({ status: newStatus, provider: 'webpay', external_id: externalId || null, updated_at: new Date().toISOString() }).eq('id', requestId);
 
