@@ -17,6 +17,13 @@ export async function POST(request) {
   }
 
   await supabase.from('webhook_deliveries').insert({ provider: 'fintoc', endpoint: '/api/payments/webhook/fintoc', payload, headers: {}, status: 'pending' });
+  try {
+    const { processPaymentEvent } = await import('@/lib/webhookUtils');
+    const result = await processPaymentEvent(supabase, 'fintoc', payload);
+    if (result.handled) return NextResponse.json({ received: true, result });
+  } catch (e) {
+    // ignore
+  }
 
   return NextResponse.json({ received: true });
 }

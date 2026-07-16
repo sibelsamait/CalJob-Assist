@@ -82,6 +82,9 @@
     "test:e2e": "playwright test --project=chromium",
     "test:e2e:headed": "playwright test --headed"
   },
+  "ci": {
+    "e2e": "playwright test --project=chromium"
+  },
   "devDependencies": {
     "@playwright/test": "^1.40.0",
     "prisma": "^5.14.0",

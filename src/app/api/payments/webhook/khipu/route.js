@@ -17,6 +17,13 @@ export async function POST(request) {
   }
 
   await supabase.from('webhook_deliveries').insert({ provider: 'khipu', endpoint: '/api/payments/webhook/khipu', payload, headers: {}, status: 'pending' });
+  try {
+    const { processPaymentEvent } = await import('@/lib/webhookUtils');
+    const result = await processPaymentEvent(supabase, 'khipu', payload);
+    if (result.handled) return NextResponse.json({ received: true, result });
+  } catch (e) {
+    // ignore
+  }
 
   return NextResponse.json({ received: true });
 }

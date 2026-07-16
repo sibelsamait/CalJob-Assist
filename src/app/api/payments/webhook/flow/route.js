@@ -18,12 +18,17 @@ export async function POST(request) {
     const { data: existing } = await supabase.from('payment_requests').select('id').eq('external_id', externalId).limit(1);
     if (existing && existing.length) return NextResponse.json({ received: true });
   }
-
   // Record webhook for monitoring
   await supabase.from('webhook_deliveries').insert({ provider: 'flow', endpoint: '/api/payments/webhook/flow', payload, headers: {}, status: 'pending' });
 
-  // Map to internal state as needed
-  // TODO: implement verification and license creation
+  // Try to process payment event heuristically
+  try {
+    const { processPaymentEvent } = await import('@/lib/webhookUtils');
+    const result = await processPaymentEvent(supabase, 'flow', payload);
+    if (result.handled) return NextResponse.json({ received: true, result });
+  } catch (e) {
+    // ignore
+  }
 
   return NextResponse.json({ received: true });
 }
