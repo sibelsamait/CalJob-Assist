@@ -2,49 +2,39 @@ name: E2E Tests
 
 on:
   pull_request:
+    branches: [main]
   workflow_dispatch:
-
-jobs:
-  playwright-e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Install dependencies
-        run: npm ci
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-      - name: Run E2E if PLAYWRIGHT_BASE_URL set
-        env:
-          PLAYWRIGHT_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
-        run: |
-          if [ -z "$PLAYWRIGHT_BASE_URL" ]; then
-            echo "PLAYWRIGHT_BASE_URL not set; skipping E2E.";
-            exit 0;
-          fi
-          npm run test:e2e
-name: E2E Tests
-
-on:
-  pull_request:
-    branches: [ main ]
 
 jobs:
   e2e:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm ci
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Build
         run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E if PLAYWRIGHT_BASE_URL set
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
+        run: |
+          if [ -z "$PLAYWRIGHT_BASE_URL" ]; then
+            echo "PLAYWRIGHT_BASE_URL not set; skipping E2E."
+            exit 0
+          fi
+          npm run test:e2e
+
       - name: Run basic smoke tests
         run: |
-          # Basic smoke: ensure serverless build succeeded
           echo "Build OK"
