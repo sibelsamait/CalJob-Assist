@@ -34,7 +34,7 @@ export default function Home() {
       { value: "webpay_plus", label: "Webpay Plus" },
       { value: "mercado_pago", label: "Mercado Pago" },
       { value: "flow", label: "Flow" },
-      { value: "stripe", label: "Stripe" },
+      { value: "khipu", label: "Khipu" },
       { value: "paypal", label: "PayPal" },
     ],
     private_company: [
@@ -415,7 +415,7 @@ export default function Home() {
             })}
           </div>
           <p className="text-center text-xs text-muted-foreground mt-6">
-            Todos los planes incluyen período de prueba de 14 días sin cargo · Facturación en CLP · Pago con tarjeta de crédito o débito
+            Todos los planes incluyen período de prueba de 14 días sin cargo · Facturación en CLP · Pago con Webpay Plus, Mercado Pago, Flow o Khipu
           </p>
         </div>
       </section>

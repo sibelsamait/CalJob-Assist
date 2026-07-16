@@ -76,11 +76,11 @@ export async function POST(request) {
   }
 
   if (entityType === 'natural_person') {
-    if (paymentMethod === 'stripe') {
+    if (['webpay_plus', 'mercado_pago', 'flow', 'khipu', 'paypal'].includes(paymentMethod)) {
       return NextResponse.json({
         status: 'checkout_ready',
         checkoutUrl: `/api/payments/checkout/session?requestId=${data.id}`,
-        message: 'Redirigiendo a pasarela de pago segura para personas naturales',
+        message: 'Redirigiendo al enlace de pago seguro para personas naturales',
       });
     }
 
