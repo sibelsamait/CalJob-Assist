@@ -14,6 +14,7 @@ Este documento contiene las acciones operativas rápidas para CalJob Assist en p
 3) Reintentos automáticos
 - GitHub workflow `webhook-retry.yml` ejecuta `/api/webhooks/drive` cada 15 minutos.
 - Añadir secrets `WEBHOOK_RETRY_BASE_URL` y `WEBHOOK_RETRY_TOKEN`.
+- Si el workflow llama a `/api/webhooks/retry`, también debes dejar `CRON_BASE_URL` y `CRON_TOKEN` configurados.
 
 4) Cron de suscripciones
 - Workflow `cron-subscriptions.yml` llama a `/api/payments/cron/subscriptions` diariamente.

@@ -3,7 +3,7 @@
 Este documento resume dónde obtener las credenciales necesarias para poner CalJob Assist en producción.
 
 ## Supabase
-- NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 - Crear proyecto en https://app.supabase.com → Project Settings → API → copiar URL y keys.
 
 ## PayPal
@@ -11,7 +11,11 @@ Este documento resume dónde obtener las credenciales necesarias para poner CalJ
   - Copiar `Client ID` → `PAYPAL_CLIENT_ID` y `Secret` → `PAYPAL_CLIENT_SECRET`.
   - Configurar `PAYPAL_MODE=live` para producción.
   - Crear Webhook en la app con la URL `https://<tu-dominio>/api/payments/webhook/paypal` y copiar el `Webhook ID` → `PAYPAL_WEBHOOK_ID`.
-  - Para suscripciones: crear un `Plan` en Billing > Plans y copiar `Plan ID` → `PAYPAL_PLAN_ID`.
+  - Para suscripciones: crear un `Plan` por categoría en Billing > Plans y copiar cada `Plan ID` en los secretos de entorno:
+    - `PAYPAL_PERSONAL_PLAN_ID` (o `PERSONAL_PLAN_ID`)
+    - `PAYPAL_TEAM_PLAN_ID` (o `TEAM_PLAN_ID`)
+    - `PAYPAL_ENTERPRISE_PLAN_ID` (o `ENTERPRISE_PLAN_ID`)
+  - Importante: la app manejará la suscripción real desde la base de datos; PayPal solo será usado para cobros y, si así lo deseas, para reembolsos/cancelaciones automatizadas.
 
 ## Transbank / Webpay
 - Contactar a Transbank/Transacciones Comerciales en https://www.transbankdevelopers.cl
@@ -39,8 +43,16 @@ Este documento resume dónde obtener las credenciales necesarias para poner CalJ
 - Khipu: https://khipu.com/developers → `KHIPU_API_KEY`.
 
 ## Email / SMTP
-- Proveedor SMTP (SendGrid, Mailgun, SES, etc.)
-  - `EMAIL_FROM`, `SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD`.
+- Proveedor SMTP (MailerSend, SendGrid, Mailgun, SES, etc.)
+  - `EMAIL_FROM` → remitente visible en los correos salientes.
+  - `CONTACT_ADMIN_EMAIL` → correo del equipo que recibe nuevos contactos/tickets.
+  - `SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_PORT`, `SMTP_SECURE`.
+  - Ejemplo MailerSend:
+    - `SMTP_HOST=smtp.mailersend.net`
+    - `SMTP_PORT=587`
+    - `SMTP_USER=MS_xxx@...mlsender.net`
+    - `SMTP_PASSWORD=mssp.xxxxxxx...`
+    - `EMAIL_FROM=onboarding@tudominio.com`
 
 ## Database
 - `DATABASE_URL` (Postgres) — configurar una base de datos gestionada (Supabase, Postgres en cloud).
@@ -56,8 +68,52 @@ Este documento resume dónde obtener las credenciales necesarias para poner CalJ
 - Activar HTTPS y dominios válidos para que PayPal/Transbank acepten las notificaciones.
 
 ## Webhook retry / monitorización
-- Asegúrate de añadir los secrets `WEBHOOK_RETRY_BASE_URL` y `WEBHOOK_RETRY_TOKEN` en GitHub Secrets para permitir que
-  el workflow `.github/workflows/webhook-retry.yml` ejecute reintentos periódicos. El endpoint espera un `Authorization: Bearer <token>`.
+- Para los reintentos automáticos necesitas dos secrets:
+  - `WEBHOOK_RETRY_BASE_URL` → URL pública del sitio, por ejemplo `https://mi-dominio.com`
+  - `WEBHOOK_RETRY_TOKEN` → token secreto compartido con el endpoint `/api/webhooks/retry`
+- El workflow de GitHub Actions usa esas variables para llamar al endpoint con `Authorization: Bearer <token>`.
+
+## Variables por entorno
+### Vercel (runtime + app)
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `DATABASE_URL`
+- `NEXT_PUBLIC_APP_URL`
+- `PAYPAL_CLIENT_ID`
+- `PAYPAL_CLIENT_SECRET`
+- `PAYPAL_MODE`
+- `PAYPAL_WEBHOOK_ID`
+- `PAYPAL_PERSONAL_PLAN_ID` o `PERSONAL_PLAN_ID`
+- `PAYPAL_TEAM_PLAN_ID` o `TEAM_PLAN_ID`
+- `PAYPAL_ENTERPRISE_PLAN_ID` o `ENTERPRISE_PLAN_ID`
+- `EMAIL_FROM`
+- `CONTACT_ADMIN_EMAIL`
+- `SMTP_HOST`
+- `SMTP_USER`
+- `SMTP_PASSWORD`
+- `SMTP_PORT`
+- `SMTP_SECURE`
+- `WEBHOOK_RETRY_BASE_URL` (opcional si el endpoint de reintentos se usa desde la app)
+- `WEBHOOK_RETRY_TOKEN` (opcional si el endpoint de reintentos se usa desde la app)
+
+### GitHub Actions / Secrets
+- `WEBHOOK_RETRY_BASE_URL`
+- `WEBHOOK_RETRY_TOKEN`
+- `CRON_BASE_URL`
+- `CRON_TOKEN`
+- `PAYPAL_CLIENT_ID`
+- `PAYPAL_CLIENT_SECRET`
+- `PAYPAL_MODE`
+- `PAYPAL_WEBHOOK_ID`
+- `PAYPAL_PERSONAL_PLAN_ID` o `PERSONAL_PLAN_ID`
+- `PAYPAL_TEAM_PLAN_ID` o `TEAM_PLAN_ID`
+- `PAYPAL_ENTERPRISE_PLAN_ID` o `ENTERPRISE_PLAN_ID`
+- `SMTP_HOST`
+- `SMTP_USER`
+- `SMTP_PASSWORD`
+- `EMAIL_FROM`
+- `CONTACT_ADMIN_EMAIL`
 
 ---
 

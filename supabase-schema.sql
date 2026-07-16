@@ -233,6 +233,8 @@ create table if not exists public.tickets (
   priority     text not null default 'medium' check (priority in ('low','medium','high','critical')),
   resolution   text,
   assigned_to  uuid references auth.users(id) on delete set null,
+  source       text default 'contact' check (source in ('contact','support','sales','billing')),
+  metadata     jsonb,
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now()
 );
@@ -242,6 +244,7 @@ create policy "staff_all_tickets" on public.tickets for all using (
 );
 create policy "user_own_tickets" on public.tickets for select using (user_id = auth.uid());
 create policy "user_create_ticket" on public.tickets for insert with check (user_id = auth.uid());
+create policy "anon_create_ticket" on public.tickets for insert with check (user_id is null and user_email is not null);
 
 -- 5. AUDIT LOG (inmutable)
 create table if not exists public.audit_log (

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseServer } from '@/lib/supabaseServer';
+import { resolvePayPalPlanId } from '@/lib/paypal';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,7 +34,9 @@ export async function GET(request, { params }) {
   if (error || !paymentRequest) return NextResponse.json({ error: 'Payment request not found' }, { status: 404 });
 
   if (paymentRequest.payment_method !== 'paypal') return NextResponse.json({ error: 'Not configured for PayPal' }, { status: 400 });
-  if (!process.env.PAYPAL_PLAN_ID) return NextResponse.json({ error: 'Missing PAYPAL_PLAN_ID' }, { status: 500 });
+
+  const planId = resolvePayPalPlanId(paymentRequest.plan_key);
+  if (!planId) return NextResponse.json({ error: 'Missing PayPal plan configuration for this plan' }, { status: 500 });
 
   try {
     const token = await getPayPalToken();
@@ -41,7 +44,7 @@ export async function GET(request, { params }) {
     const url = `https://${mode}/v1/billing/subscriptions`;
 
     const body = {
-      plan_id: process.env.PAYPAL_PLAN_ID,
+      plan_id: planId,
       custom_id: paymentRequest.id,
       application_context: {
         brand_name: 'CalJob Assist',
