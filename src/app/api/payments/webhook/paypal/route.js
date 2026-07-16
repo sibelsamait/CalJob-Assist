@@ -48,6 +48,16 @@ export async function POST(request) {
   const raw = await request.json();
   const hdrs = headers();
 
+  // Record webhook for monitoring and retries
+  try {
+    const supabase = getSupabaseServer();
+    if (supabase) {
+      await supabase.from('webhook_deliveries').insert({ provider: 'paypal', endpoint: '/api/payments/webhook/paypal', payload: raw, headers: Object.fromEntries(hdrs.entries()), status: 'pending' });
+    }
+  } catch (e) {
+    // ignore monitoring failures
+  }
+
   try {
     const verified = await verifyPayPalWebhook(raw, hdrs);
     if (!verified) return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 });
