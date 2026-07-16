@@ -40,7 +40,7 @@ PayPal:
 - Copiar `Client ID` y `Secret` en `PAYPAL_CLIENT_ID` y `PAYPAL_CLIENT_SECRET`.
 - Configurar `PAYPAL_MODE` a `live` en producción.
 - Crear un webhook en tu app de PayPal y añadir la URL `https://<tu-dominio>/api/payments/webhook/paypal` y copiar el `Webhook ID` en `PAYPAL_WEBHOOK_ID`.
- - Para suscripciones recurrentes: crea un `Plan` en PayPal (Billing Plans) y copia su `Plan ID` en `PAYPAL_PLAN_ID`. Usa el endpoint `/api/payments/paypal/subscriptions/:requestId` para crear la suscripción y obtener el enlace de aprobación.
+ - Para suscripciones recurrentes: crea un `Plan` en PayPal (Billing Plans) por cada categoría y copia cada `Plan ID` en `PAYPAL_PERSONAL_PLAN_ID` / `PAYPAL_TEAM_PLAN_ID` / `PAYPAL_ENTERPRISE_PLAN_ID` (o sus aliases `PERSONAL_PLAN_ID`, `TEAM_PLAN_ID`, `ENTERPRISE_PLAN_ID`). Usa el endpoint `/api/payments/paypal/subscriptions/:requestId` para crear la suscripción y obtener el enlace de aprobación.
 
 Mercado Pago:
 - Para recibir notificaciones, agrega la URL `https://<tu-dominio>/api/payments/webhook/mercadopago` en tu panel de Mercado Pago (Webhooks) y usa `MERCADO_PAGO_ACCESS_TOKEN`.
