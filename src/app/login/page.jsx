@@ -23,11 +23,23 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      router.push("/");
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+      if (authError) throw authError;
+
+      // Fetch role and redirect staff to admin panel
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+
+      if (profile?.role === "admin" || profile?.role === "tecnico") {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
     } catch (err) {
-      setError(err.message || "Invalid email or password");
+      setError(err.message || "Correo o contraseña incorrectos");
     } finally {
       setLoading(false);
     }
@@ -35,99 +47,59 @@ export default function Login() {
 
   const handleGoogle = async () => {
     await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${location.origin}/auth/callback`,
-      },
+      provider: "google",
+      options: { redirectTo: `${location.origin}/auth/callback` },
     });
   };
 
   return (
     <AuthLayout
       icon={LogIn}
-      title="Welcome back"
-      subtitle="Log in to your account"
+      title="Bienvenido de vuelta"
+      subtitle="Inicia sesión en tu cuenta"
       footer={
         <>
-          Don't have an account?{" "}
-          <Link href="/register" className="text-primary font-medium hover:underline">
-            Create one
-          </Link>
+          ¿No tienes cuenta?{" "}
+          <Link href="/register" className="text-primary font-medium hover:underline">Regístrate</Link>
         </>
       }
     >
-      <Button
-        variant="outline"
-        className="w-full h-12 text-sm font-medium mb-6"
-        onClick={handleGoogle}
-      >
+      <Button variant="outline" className="w-full h-12 text-sm font-medium mb-6" onClick={handleGoogle}>
         <GoogleIcon className="w-5 h-5 mr-2" />
-        Continue with Google
+        Continuar con Google
       </Button>
 
       <div className="relative mb-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border" />
-        </div>
+        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-3 text-muted-foreground">or</span>
+          <span className="bg-card px-3 text-muted-foreground">o</span>
         </div>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-          {error}
-        </div>
-      )}
+      {error && <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">Correo electrónico</Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              autoFocus
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-12"
-              required
-            />
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input id="email" type="email" autoComplete="email" autoFocus placeholder="tu@ejemplo.com"
+              value={email} onChange={e => setEmail(e.target.value)} className="pl-10 h-12" required />
           </div>
         </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
-            <Link href="/forgot-password" className="text-xs text-primary hover:underline">
-              Forgot password?
-            </Link>
+            <Label htmlFor="password">Contraseña</Label>
+            <Link href="/forgot-password" className="text-xs text-primary hover:underline">¿Olvidaste tu contraseña?</Link>
           </div>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-            <Input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 h-12"
-              required
-            />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input id="password" type="password" autoComplete="current-password" placeholder="••••••••"
+              value={password} onChange={e => setPassword(e.target.value)} className="pl-10 h-12" required />
           </div>
         </div>
         <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Logging in...
-            </>
-          ) : (
-            "Log in"
-          )}
+          {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Iniciando sesión...</> : "Iniciar sesión"}
         </Button>
       </form>
     </AuthLayout>
