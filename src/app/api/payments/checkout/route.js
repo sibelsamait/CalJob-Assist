@@ -61,6 +61,7 @@ export async function POST(request) {
       entity_label: PAYMENT_FLOW[entityType]?.label,
       plan_title: planMeta.label,
       payment_method: paymentMethod,
+      ...(payload.metadata || {}),
     },
   };
 

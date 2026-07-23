@@ -1,0 +1,1 @@
+export { default } from '@/app/(billing)/portal/page';

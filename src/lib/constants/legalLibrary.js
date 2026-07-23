@@ -1,0 +1,9 @@
+export const LEGAL_LIBRARY = [
+  { id: 'codigo-trabajo', title: 'Código del Trabajo', category: 'Código', summary: 'Marco principal de las relaciones laborales en Chile.', updatedAt: '2026-01-01', content: 'Consulta las normas generales sobre contratos, jornada, remuneraciones, descanso, terminación y fiscalización de las relaciones laborales.' },
+  { id: 'jornada-descansos', title: 'Jornada de trabajo y descansos', category: 'Jornada', summary: 'Reglas de jornada ordinaria, distribución y descansos.', updatedAt: '2026-01-01', content: 'La jornada y sus descansos deben revisarse según la legislación vigente, el contrato individual y los instrumentos colectivos aplicables.' },
+  { id: 'feriado-anual', title: 'Feriado anual', category: 'Descansos', summary: 'Derecho al feriado legal y proporcional.', updatedAt: '2026-01-01', content: 'El feriado anual y proporcional se determina considerando el tiempo servido, los días utilizados y las reglas especiales de la relación laboral.' },
+  { id: 'terminacion-contrato', title: 'Terminación del contrato', category: 'Contrato', summary: 'Causales, formalidades y conceptos del término laboral.', updatedAt: '2026-01-01', content: 'El término de la relación laboral requiere identificar la causal aplicable, cumplir las formalidades y revisar los pagos que correspondan.' },
+  { id: 'gratificacion-legal', title: 'Gratificación legal', category: 'Remuneraciones', summary: 'Alternativas de cálculo y límites de la gratificación.', updatedAt: '2026-01-01', content: 'La gratificación legal puede analizarse según el sistema aplicable, las utilidades y los límites establecidos por la normativa vigente.' },
+];
+
+export default LEGAL_LIBRARY;

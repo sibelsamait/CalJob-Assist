@@ -62,8 +62,8 @@ export async function GET(request, { params }) {
         },
       ],
       application_context: {
-        return_url: `${process.env.NEXT_PUBLIC_APP_URL}/?checkout=success&requestId=${paymentRequest.id}`,
-        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/?checkout=cancel&requestId=${paymentRequest.id}`,
+        return_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/success?requestId=${paymentRequest.id}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/success?requestId=${paymentRequest.id}&status=cancelled`,
       },
     };
 
