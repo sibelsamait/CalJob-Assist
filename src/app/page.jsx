@@ -15,10 +15,11 @@ export default function Home() {
 
   const handleSelectPlan = useCallback((plan) => {
     if (!isAuthenticated) {
-      router.push(`/login?redirect=/billing/checkout?plan=${plan}`);
+      const checkoutPath = `/billing/checkout?plan=${encodeURIComponent(plan)}`;
+      router.push(`/login?redirect=${encodeURIComponent(checkoutPath)}`);
       return;
     }
-    router.push(`/billing/checkout?plan=${plan}`);
+    router.push(`/billing/checkout?plan=${encodeURIComponent(plan)}`);
   }, [isAuthenticated, router]);
 
   return (

@@ -1,11 +1,12 @@
 import { CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { COLORS } from '@/lib/constants/theme';
+import { PLANS } from '@/lib/constants/plans';
 
 const plans = [
-  { key: 'personal', name: 'Personal', price: '$15.000', description: 'Ideal para emprendedores y equipos pequeños.', features: ['Acceso inmediato', 'Gestión simple', 'Soporte básico'] },
-  { key: 'team', name: 'Equipo', price: '$49.000', description: 'Para equipos que necesitan colaboración y seguimiento.', features: ['Todo lo del plan personal', 'Colaboración', 'Soporte prioritario'] },
-  { key: 'enterprise', name: 'Empresarial', price: '$149.000', description: 'Para organizaciones que requieren escalabilidad.', features: ['Todo lo del plan equipo', 'Administración avanzada', 'Atención dedicada'] },
+  { key: 'personal', description: 'Ideal para emprendedores y equipos pequeños.', features: ['Acceso inmediato', 'Gestión simple', 'Soporte básico'] },
+  { key: 'team', description: 'Para equipos que necesitan colaboración y seguimiento.', features: ['Todo lo del plan personal', 'Colaboración', 'Soporte prioritario'] },
+  { key: 'enterprise', description: 'Para organizaciones que requieren escalabilidad.', features: ['Todo lo del plan equipo', 'Administración avanzada', 'Atención dedicada'] },
 ];
 
 export function PricingSection({ onSelectPlan }) {
@@ -21,14 +22,16 @@ export function PricingSection({ onSelectPlan }) {
           {plans.map((plan) => (
             <div key={plan.key} className="flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-slate-900">{plan.name}</h3>
-                <span className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]" style={{ backgroundColor: `${COLORS.primary}12`, color: COLORS.primary }}>
-                  Popular
-                </span>
+                <h3 className="text-xl font-semibold text-slate-900">{PLANS[plan.key].label}</h3>
+                {plan.key === 'team' ? (
+                  <span className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]" style={{ backgroundColor: `${COLORS.primary}12`, color: COLORS.primary }}>
+                    Popular
+                  </span>
+                ) : null}
               </div>
               <p className="mt-3 text-sm text-slate-600">{plan.description}</p>
               <div className="mt-6 flex items-end gap-1">
-                <span className="text-4xl font-semibold text-slate-900">{plan.price}</span>
+                <span className="text-4xl font-semibold text-slate-900">${PLANS[plan.key].price.toLocaleString('es-CL')}</span>
                 <span className="pb-1 text-sm text-slate-500">/ mes</span>
               </div>
               <ul className="mt-6 space-y-3 text-sm text-slate-600">

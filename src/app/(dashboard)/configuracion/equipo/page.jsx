@@ -1,0 +1,22 @@
+"use client";
+
+import { useEffect, useState } from 'react';
+import { Loader2, UserPlus, Users } from 'lucide-react';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { AlertBanner } from '@/components/ui/AlertBanner';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { RoleBadge } from '@/components/ui/RoleBadge';
+import { Button } from '@/components/ui/button';
+import { useProfile } from '@/lib/hooks/useProfile';
+import { useToast } from '@/components/ui/use-toast';
+
+export default function TeamConfigurationPage() {
+  const { role, isLoading } = useProfile(); const { toast } = useToast(); const [members, setMembers] = useState([]); const [email, setEmail] = useState(''); const [memberRole, setMemberRole] = useState('team_member'); const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false); const [error, setError] = useState('');
+  const canManage = role === 'plan_owner' || role === 'admin';
+  const loadMembers = async () => { setLoading(true); const response = await fetch('/api/team'); const result = await response.json(); if (!response.ok) setError(result.error || 'No se pudo cargar el equipo.'); else setMembers(result.members || []); setLoading(false); };
+  useEffect(() => { if (!isLoading && canManage) loadMembers(); else if (!isLoading) { setLoading(false); toast({ title: 'No tienes permisos para esta sección', description: 'Solo un plan_owner puede invitar o gestionar miembros del equipo.', variant: 'destructive' }); } }, [isLoading, canManage, toast]);
+  const invite = async (event) => { event.preventDefault(); setSaving(true); setError(''); const response = await fetch('/api/team', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, role: memberRole }) }); const result = await response.json(); if (!response.ok) setError(result.error || 'No se pudo enviar la invitación.'); else { setEmail(''); toast({ title: 'Invitación enviada', description: `Se envió una invitación a ${email}.` }); await loadMembers(); } setSaving(false); };
+  if (isLoading || loading) return <div className="flex min-h-[420px] items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-slate-700" /></div>;
+  if (!canManage) return <AlertBanner tone="error" title="No tienes permisos para esta sección" description="Solo un plan_owner puede invitar o gestionar miembros del equipo." />;
+  return <div className="space-y-6"><PageHeader title="Equipo" description="Invita y revisa los accesos asociados a tu plan." /><div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]"><section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><div className="flex items-center gap-3"><Users className="h-5 w-5 text-blue-800" /><h2 className="text-lg font-semibold text-slate-900">Miembros invitados</h2></div>{error ? <div className="mt-5"><AlertBanner tone="error" title="No se pudo completar la operación" description={error} /></div> : null}{members.length === 0 ? <div className="mt-5"><EmptyState title="Aún no tienes miembros" description="Las personas invitadas aparecerán en esta lista." /></div> : <div className="mt-5 space-y-3">{members.map((member) => <div key={member.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 p-4"><div><p className="font-medium text-slate-900">{member.full_name || 'Invitación pendiente'}</p><p className="mt-1 text-sm text-slate-500">{member.email || 'Correo no disponible'}</p></div><RoleBadge role={member.role} /></div>)}</div>}</section><form onSubmit={invite} className="h-fit rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><UserPlus className="h-6 w-6 text-blue-800" /><h2 className="mt-4 text-lg font-semibold text-slate-900">Invitar miembro</h2><label className="mt-5 block text-sm font-medium text-slate-700">Correo electrónico<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5" /></label><label className="mt-4 block text-sm font-medium text-slate-700">Acceso<select value={memberRole} onChange={(event) => setMemberRole(event.target.value)} className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5"><option value="team_member">Miembro del equipo</option><option value="readonly">Solo lectura</option></select></label><Button type="submit" disabled={saving} className="mt-6 w-full">{saving ? 'Enviando...' : 'Enviar invitación'}</Button></form></div></div>;
+}

@@ -1,0 +1,15 @@
+"use client";
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { AlertBanner } from '@/components/ui/AlertBanner';
+import { ResultCard } from '@/components/calculadoras/ResultCard';
+import { CalculatorShell } from '@/components/calculadoras/CalculatorShell';
+import { useEconomicData } from '@/lib/hooks/useEconomicData';
+
+export default function UfUtmCalculatorPage() {
+  const { indicators, error: economicError } = useEconomicData(); const [form, setForm] = useState({ amount: '', unit: 'uf' }); const [result, setResult] = useState(null); const [error, setError] = useState('');
+  const calculate = (event) => { event.preventDefault(); const amount = Number(form.amount); const value = Number(indicators[form.unit]); if (amount <= 0) { setError('Ingresa un monto mayor que cero.'); setResult(null); return; } if (!value) { setError('El indicador seleccionado no está disponible.'); setResult(null); return; } setError(''); setResult(amount * value); };
+  return <CalculatorShell title="Calculadora UF y UTM" description="Convierte unidades tributarias a pesos usando el valor disponible del día."><div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]"><form onSubmit={calculate} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><div className="grid gap-5 sm:grid-cols-2"><label className="text-sm font-medium text-slate-700">Unidad<select value={form.unit} onChange={(event) => setForm((current) => ({ ...current, unit: event.target.value }))} className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5"><option value="uf">UF</option><option value="utm">UTM</option></select></label><label className="text-sm font-medium text-slate-700">Cantidad<input value={form.amount} onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))} type="number" min="0" step="0.01" className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5" /></label></div>{economicError ? <div className="mt-5"><AlertBanner tone="warning" title="Indicadores no actualizados" description="No se pudo obtener el valor en línea. Intenta nuevamente más tarde." /></div> : null}{error ? <div className="mt-5"><AlertBanner tone="error" title="No se pudo calcular" description={error} /></div> : null}<Button type="submit" className="mt-6">Convertir a pesos</Button></form>{result !== null ? <ResultCard title="Valor convertido" value={`$${Math.round(result).toLocaleString('es-CL')} CLP`} rows={[{ label: 'Cantidad', value: `${form.amount} ${form.unit.toUpperCase()}` }, { label: 'Valor unitario', value: `$${Number(indicators[form.unit]).toLocaleString('es-CL')} CLP` }]} /> : <EmptyState title="Aún no hay un resultado" description="Selecciona una unidad e ingresa una cantidad." />}</div></CalculatorShell>;
+}
