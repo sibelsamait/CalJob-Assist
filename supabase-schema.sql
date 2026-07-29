@@ -306,3 +306,102 @@ create policy "staff_all_docs"  on public.documents for select using (
 -- Ejecutar en Storage > New Bucket: "documents" (privado)
 -- La política de acceso se maneja via RLS en la tabla documents
 -- y signed URLs generados desde el servidor.
+
+-- ============================================================
+-- 12. CALENDARIO LABORAL Y TRIBUTARIO
+-- ============================================================
+create table if not exists public.calendar_events (
+  id           uuid primary key default gen_random_uuid(),
+  user_id      uuid references auth.users(id) on delete cascade,
+  company_id   uuid references public.companies(id) on delete cascade,
+  title        text not null,
+  description  text,
+  event_type   text not null check (event_type in (
+    'sii_deadline', 'dt_deadline', 'hearing', 'mediation_session',
+    'contract_expiry', 'license_expiry', 'custom'
+  )),
+  source       text not null default 'user' check (source in ('system','user')),
+  start_date   timestamptz not null,
+  end_date     timestamptz,
+  is_all_day   boolean not null default false,
+  recurrence   text check (recurrence in ('none','monthly','annual')),
+  color        text,
+  metadata     jsonb,
+  is_active    boolean not null default true,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+alter table public.calendar_events enable row level security;
+drop policy if exists "user_own_events" on public.calendar_events;
+create policy "user_own_events" on public.calendar_events for select using (
+  user_id = auth.uid() or source = 'system'
+);
+drop policy if exists "user_insert_events" on public.calendar_events;
+create policy "user_insert_events" on public.calendar_events for insert with check (
+  user_id = auth.uid() and source = 'user'
+);
+drop policy if exists "user_update_own_events" on public.calendar_events;
+create policy "user_update_own_events" on public.calendar_events for update using (
+  user_id = auth.uid() and source = 'user'
+);
+drop policy if exists "user_delete_own_events" on public.calendar_events;
+create policy "user_delete_own_events" on public.calendar_events for delete using (
+  user_id = auth.uid() and source = 'user'
+);
+drop policy if exists "staff_all_events" on public.calendar_events;
+create policy "staff_all_events" on public.calendar_events for all using (
+  source = 'user' and exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.role in ('admin','tecnico')
+  )
+ ) with check (
+  source = 'user' and exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.role in ('admin','tecnico')
+  )
+);
+create index if not exists calendar_events_user_date_idx
+  on public.calendar_events (user_id, start_date);
+create index if not exists calendar_events_system_date_idx
+  on public.calendar_events (start_date) where source = 'system';
+
+-- ============================================================
+-- 13. NOTIFICACIONES DE EVENTOS
+-- ============================================================
+create table if not exists public.notifications (
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid not null references auth.users(id) on delete cascade,
+  event_id        uuid references public.calendar_events(id) on delete cascade,
+  title           text not null,
+  body            text not null,
+  type            text not null check (type in (
+    'event_7d', 'event_3d', 'event_1d', 'event_1h', 'event_now',
+    'system', 'custom'
+  )),
+  channel         text[] not null default array['in_app'],
+  is_read         boolean not null default false,
+  scheduled_for   timestamptz not null,
+  sent_at         timestamptz,
+  metadata        jsonb,
+  created_at      timestamptz not null default now()
+);
+alter table public.notifications enable row level security;
+drop policy if exists "user_own_notifications" on public.notifications;
+create policy "user_own_notifications" on public.notifications for select using (
+  user_id = auth.uid()
+);
+drop policy if exists "mark_read" on public.notifications;
+create policy "mark_read" on public.notifications for update using (
+  user_id = auth.uid()
+);
+drop policy if exists "staff_all_notifications" on public.notifications;
+create policy "staff_all_notifications" on public.notifications for all using (
+  exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.role in ('admin','tecnico')
+  )
+);
+create unique index if not exists notifications_event_type_idx
+  on public.notifications (event_id, user_id, type) where event_id is not null;
+create index if not exists notifications_user_created_idx
+  on public.notifications (user_id, created_at desc);

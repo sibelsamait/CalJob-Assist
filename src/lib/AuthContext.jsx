@@ -26,14 +26,46 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchProfile = async (userId) => {
-    if (!supabaseClient) return;
+    if (!supabaseClient) return null;
 
-    const { data } = await supabaseClient
+    const { data: profileData, error: profileError } = await supabaseClient
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
-    setProfile(data ?? null);
+
+    if (profileError || !profileData) {
+      setProfile(null);
+      return null;
+    }
+
+    const baseProfile = {
+      ...profileData,
+      license_metadata: null,
+      license_ends_at: null,
+      license_active: ['admin', 'tecnico'].includes(profileData.role),
+    };
+
+    if (['plan_owner', 'team_member'].includes(profileData.role)) {
+      const { data: licenseData } = await supabaseClient
+        .from('licenses')
+        .select('plan, status, ends_at, metadata')
+        .eq('company_id', profileData.company_id)
+        .eq('status', 'active')
+        .or(`ends_at.is.null,ends_at.gt.${new Date().toISOString()}`)
+        .single();
+
+      setProfile({
+        ...baseProfile,
+        license_metadata: licenseData?.metadata ?? null,
+        license_ends_at: licenseData?.ends_at ?? null,
+        license_active: Boolean(licenseData),
+      });
+      return null;
+    }
+
+    setProfile(baseProfile);
+    return null;
   };
 
   useEffect(() => {
@@ -42,27 +74,37 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+    const syncSession = async () => {
+      const { data: { session } } = await supabaseClient.auth.getSession();
       const u = session?.user ?? null;
       setUser(u);
       setIsAuthenticated(!!u);
-      if (u) fetchProfile(u.id);
+      if (u) {
+        await fetchProfile(u.id);
+      } else {
+        setProfile(null);
+      }
       setIsLoading(false);
-    });
+    };
+
+    syncSession();
 
     const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
       async (_event, session) => {
         const u = session?.user ?? null;
         setUser(u);
         setIsAuthenticated(!!u);
-        if (u) await fetchProfile(u.id);
-        else setProfile(null);
+        if (u) {
+          await fetchProfile(u.id);
+        } else {
+          setProfile(null);
+        }
         setIsLoading(false);
       }
     );
 
     return () => subscription?.unsubscribe();
-  }, [supabase]);
+  }, [supabaseClient]);
 
   const signOut = async () => {
     if (!supabaseClient) return;
