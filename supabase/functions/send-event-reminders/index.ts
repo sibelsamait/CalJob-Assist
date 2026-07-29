@@ -61,7 +61,7 @@ async function getUserEmail(supabase: ReturnType<typeof createClient>, userId: s
 
 async function sendEmail(to: string, title: string, startDate: string) {
   const resendApiKey = Deno.env.get('RESEND_API_KEY');
-  const from = Deno.env.get('REMINDER_EMAIL_FROM');
+  const from = Deno.env.get('EMAIL_FROM') ?? Deno.env.get('REMINDER_EMAIL_FROM') ?? 'CalJob Assist <noreply@caljob-assist.cl>';
   if (!resendApiKey || !from) {
     return false;
   }

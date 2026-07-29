@@ -1,25 +1,38 @@
 import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
 import { getSupabaseServer } from '@/lib/supabaseServer';
 
 export const dynamic = 'force-dynamic';
 
-function getTransporter() {
-  const host = process.env.SMTP_HOST;
-  const port = Number(process.env.SMTP_PORT || 587);
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASSWORD;
+async function sendWithResend({ to, subject, html, text, replyTo }) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.EMAIL_FROM || 'CalJob Assist <noreply@caljob-assist.cl>';
 
-  if (!host || !user || !pass) {
-    return null;
+  if (!apiKey) {
+    return false;
   }
 
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure: String(process.env.SMTP_SECURE || 'false').toLowerCase() === 'true',
-    auth: { user, pass },
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from,
+      to: Array.isArray(to) ? to : [to],
+      reply_to: replyTo,
+      subject,
+      html,
+      text,
+    }),
   });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Resend rechazó el correo: ${errorText}`);
+  }
+
+  return true;
 }
 
 export async function POST(request) {
@@ -33,9 +46,8 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Nombre, correo y mensaje son obligatorios.' }, { status: 400 });
     }
 
-    const transporter = getTransporter();
-    const adminEmail = process.env.CONTACT_ADMIN_EMAIL || process.env.EMAIL_FROM || 'contacto@caljobassist.cl';
-    const fromEmail = process.env.EMAIL_FROM || process.env.SMTP_USER || 'contacto@caljobassist.cl';
+    const adminEmail = process.env.CONTACT_ADMIN_EMAIL || process.env.EMAIL_FROM?.match(/<([^>]+)>/)?.[1] || 'noreply@caljob-assist.cl';
+    const fromEmail = process.env.EMAIL_FROM || 'CalJob Assist <noreply@caljob-assist.cl>';
 
     const subject = `Nuevo contacto desde CalJob Assist: ${name}`;
     const html = `
@@ -59,22 +71,21 @@ export async function POST(request) {
       }]);
     }
 
-    if (!transporter) {
+    if (!process.env.RESEND_API_KEY) {
       return NextResponse.json({
-        message: 'Tu mensaje fue recibido, pero el correo no está configurado aún. Completa SMTP para enviar notificaciones.',
+        message: 'Tu mensaje fue recibido, pero el correo no está configurado aún. Completa RESEND_API_KEY y EMAIL_FROM para enviar notificaciones.',
       });
     }
 
-    await transporter.sendMail({
-      from: fromEmail,
+    await sendWithResend({
       to: adminEmail,
-      replyTo: email,
       subject,
       html,
+      text: `${name} (${email}) envió un mensaje: ${message}`,
+      replyTo: email,
     });
 
-    await transporter.sendMail({
-      from: fromEmail,
+    await sendWithResend({
       to: email,
       subject: 'Hemos recibido tu mensaje en CalJob Assist',
       html: `
@@ -85,6 +96,8 @@ export async function POST(request) {
           <p>Pronto nos pondremos en contacto contigo.</p>
         </div>
       `,
+      text: `Hola ${name}, hemos recibido tu mensaje y lo registramos como un nuevo ticket de soporte.`,
+      replyTo: adminEmail,
     });
 
     return NextResponse.json({ message: 'Tu mensaje fue enviado correctamente.' });

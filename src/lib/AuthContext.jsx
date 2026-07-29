@@ -10,7 +10,7 @@ export const supabase = typeof window !== 'undefined' && SUPABASE_URL && SUPABAS
   ? createBrowserSupabaseClient({ supabaseUrl: SUPABASE_URL, supabaseKey: SUPABASE_ANON_KEY })
   : null;
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [supabaseClient] = useState(() => {
