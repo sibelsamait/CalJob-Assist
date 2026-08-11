@@ -1,6 +1,5 @@
 "use client";
 
-import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
 import { HeroSection } from '@/components/landing/HeroSection';
@@ -13,20 +12,11 @@ export default function Home() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
 
-  const handleSelectPlan = useCallback((plan) => {
-    if (!isAuthenticated) {
-      const checkoutPath = `/billing/checkout?plan=${encodeURIComponent(plan)}`;
-      router.push(`/login?redirect=${encodeURIComponent(checkoutPath)}`);
-      return;
-    }
-    router.push(`/billing/checkout?plan=${encodeURIComponent(plan)}`);
-  }, [isAuthenticated, router]);
-
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      <HeroSection isAuthenticated={isAuthenticated} onSelectPlan={handleSelectPlan} />
+      <HeroSection isAuthenticated={isAuthenticated} />
       <ServicesSection />
-      <PricingSection onSelectPlan={handleSelectPlan} />
+      <PricingSection />
       <ContactSection />
       <LandingFooter />
     </div>

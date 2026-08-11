@@ -26,14 +26,14 @@ export default function Login() {
       const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
       if (authError) throw authError;
 
-      // Fetch role and redirect staff to admin panel
+      // Fetch role and redirect admins to admin panel
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", data.user.id)
         .single();
 
-      if (profile?.role === "admin" || profile?.role === "tecnico") {
+      if (profile?.role === "admin") {
         router.push("/admin");
       } else {
         router.push("/");

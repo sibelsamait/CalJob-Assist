@@ -7,12 +7,12 @@ export default function AdminEmpresasPage() {
     <div className="space-y-6">
       <PageHeader
         title="Empresas"
-        description="Revisa el estado de las empresas registradas, sus planes y el estado de la suscripción."
+        description="Revisa el estado de las empresas registradas y su relación con la plataforma."
       />
 
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <p className="text-sm text-slate-600">
-          Controla los datos principales de las empresas activas, sus planes y el status de facturación.
+          Controla los datos principales de las empresas activas y su estado operativo.
         </p>
       </div>
 
@@ -22,8 +22,8 @@ export default function AdminEmpresasPage() {
           <p className="mt-2 text-slate-600">28 empresas actualmente con acceso completo.</p>
         </div>
         <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-          <h2 className="text-lg font-semibold text-slate-900">Planes pendientes</h2>
-          <p className="mt-2 text-slate-600">3 empresas con renovación pendiente o plan en prueba.</p>
+          <h2 className="text-lg font-semibold text-slate-900">Cuentas en revisión</h2>
+          <p className="mt-2 text-slate-600">3 empresas con validación o ajustes administrativos pendientes.</p>
         </div>
       </div>
 

@@ -1,11 +1,10 @@
-import Link from 'next/link';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Calculator, BookOpen, ScrollText, Ticket } from 'lucide-react';
 
-export default function UserDashboard({ readonly = false }) {
+export default function UserDashboard() {
   return (
     <div className="space-y-6">
-      <PageHeader title="Bienvenido a CalJob Assist" description={readonly ? 'Acceso de solo lectura para revisar cálculos e indicadores.' : 'Tu punto de inicio para contratar un plan y usar la plataforma completa.'} />
+      <PageHeader title="Bienvenido a CalJob Assist" description="Tu punto de inicio para usar la plataforma completa sin restricciones de pago." />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -20,25 +19,18 @@ export default function UserDashboard({ readonly = false }) {
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-900">Tu acceso</h2>
-          <p className="mt-3 text-slate-600">{readonly ? 'No puedes guardar cálculos ni acceder a funciones avanzadas.' : 'Contrata un plan para activar el dashboard completo.'}</p>
-          {!readonly ? (
-            <Link href="/billing/planes" className="mt-6 inline-flex items-center justify-center rounded-2xl bg-[#003087] px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-              Ver planes
-            </Link>
-          ) : null}
+          <p className="mt-3 text-slate-600">Tienes acceso completo a la plataforma sin restricciones de pago.</p>
         </div>
       </div>
 
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-slate-900">¿Qué puedes hacer?</h2>
-        <p className="mt-3 text-slate-600">{readonly ? 'Puedes ver calculadoras e indicadores, pero no guardar ni exportar.' : 'Puedes acceder a los planes y conocer los beneficios de cada uno.'}</p>
-        {!readonly && (
+          <p className="mt-3 text-slate-600">Puedes usar calculadoras, biblioteca, documentos, tickets y el resto de funciones disponibles.</p>
           <ul className="mt-5 space-y-2 text-sm text-slate-700">
-            <li>- Calculadoras sin guardar</li>
-            <li>- Acceso a landing y planes</li>
-            <li>- Consultar información básica de la plataforma</li>
+            <li>- Calculadoras, biblioteca y documentos</li>
+            <li>- Trámites, mediaciones y calendario</li>
+            <li>- Soporte y configuración personal</li>
           </ul>
-        )}
       </div>
     </div>
   );

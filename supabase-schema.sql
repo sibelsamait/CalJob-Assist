@@ -7,8 +7,8 @@
 create table if not exists public.profiles (
   id          uuid primary key references auth.users(id) on delete cascade,
   full_name   text,
-  role        text not null default 'user' check (role in ('user','tecnico','admin')),
-  plan        text not null default 'personal' check (plan in ('personal','team','enterprise','internal')),
+  role        text not null default 'user' check (role in ('user','admin')),
+  plan        text not null default 'enterprise' check (plan in ('enterprise','internal')),
   company_id  uuid,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
@@ -40,7 +40,7 @@ create table if not exists public.companies (
   name          text not null,
   rut           text unique not null,
   contact_email text,
-  plan          text not null default 'personal' check (plan in ('personal','team','enterprise')),
+  plan          text not null default 'enterprise' check (plan in ('enterprise')),
   status        text not null default 'trial' check (status in ('active','trial','suspended','inactive')),
   users_count   int not null default 0,
   created_at    timestamptz not null default now()
@@ -99,7 +99,7 @@ alter table public.payment_requests enable row level security;
 create policy "insert_payment_request" on public.payment_requests for insert with check (user_id = auth.uid());
 create policy "select_own_payment_requests" on public.payment_requests for select using (user_id = auth.uid());
 create policy "staff_all_payment_requests" on public.payment_requests for all using (
-  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('admin','tecnico'))
+  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
 );
 
 -- 5. SEARCH HISTORY

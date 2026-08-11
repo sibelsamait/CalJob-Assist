@@ -2,9 +2,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { COLORS } from '@/lib/constants/theme';
 
-export function HeroSection({ isAuthenticated, onSelectPlan }) {
+export function HeroSection({ isAuthenticated }) {
   return (
     <section className="border-b border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white">
       <div className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-16 lg:flex-row lg:items-center lg:justify-between lg:px-8">
@@ -14,16 +13,18 @@ export function HeroSection({ isAuthenticated, onSelectPlan }) {
             Operación legal y laboral, ordenada
           </div>
           <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
-            Gestiona trámites, calculadoras y suscripciones desde un solo punto de entrada.
+            Gestiona trámites, calculadoras y soporte desde un solo punto de entrada.
           </h1>
           <p className="mt-5 max-w-xl text-lg text-slate-300">
-            CalJob Assist centraliza tus procesos, pagos y soporte para que cada equipo trabaje con claridad y menos fricción.
+            CalJob Assist centraliza tus procesos para que cada persona pueda usar la plataforma completa sin costos ni suscripciones.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button onClick={() => onSelectPlan('personal')} className="bg-white text-slate-900 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-              Comenzar ahora
+            <Link href={isAuthenticated ? '/dashboard' : '/register'}>
+              <Button className="bg-white text-slate-900 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                Comenzar ahora
               <ArrowRight className="h-4 w-4" />
-            </Button>
+              </Button>
+            </Link>
             <Link href={isAuthenticated ? '/dashboard' : '/login'}>
               <Button variant="outline" className="border-white/20 bg-transparent text-white hover:bg-white/10">
                 {isAuthenticated ? 'Ir al panel' : 'Iniciar sesión'}
@@ -42,10 +43,10 @@ export function HeroSection({ isAuthenticated, onSelectPlan }) {
               </div>
             </div>
             <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm text-slate-600">Valor de la propuesta</p>
+              <p className="text-sm text-slate-600">Acceso completo</p>
               <div className="mt-2 flex items-end gap-2">
-                <span className="text-3xl font-semibold text-slate-900">+40%</span>
-                <span className="text-sm text-emerald-600">menos tiempo manual</span>
+                <span className="text-3xl font-semibold text-slate-900">Gratis</span>
+                <span className="text-sm text-emerald-600">para todos</span>
               </div>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
