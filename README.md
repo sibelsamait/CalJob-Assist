@@ -1,7 +1,7 @@
 # CalJob Assist
 **"Controla tu vida legal y laboral informado"**
 
-Plataforma SaaS de cálculo laboral chileno para trabajadores, empleadores, mediadores y entidades públicas.
+Plataforma SaaS de cálculo laboral chileno para trabajadores, empleadores, mediadores y entidades públicas. 
 
 ---
 

@@ -1,3 +1,5 @@
+/// <reference path="./deno-shim.d.ts" />
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const REMINDER_WINDOWS = [
@@ -36,7 +38,7 @@ function getNotificationBody(title: string, startDate: string, type: string) {
   return `${title} vence ${labels[type] ?? 'pronto'} (${formatEventDate(startDate)}).`;
 }
 
-async function getEventRecipients(supabase: ReturnType<typeof createClient>, event: { user_id: string | null; source: string }) {
+async function getEventRecipients(supabase: any, event: { user_id: string | null; source: string }) {
   if (event.source === 'user' && event.user_id) {
     return [event.user_id];
   }
@@ -46,10 +48,10 @@ async function getEventRecipients(supabase: ReturnType<typeof createClient>, eve
     throw new Error(`No se pudieron obtener los destinatarios: ${error.message}`);
   }
 
-  return (data ?? []).map((profile) => profile.id);
+  return (data ?? []).map((profile: { id: string }) => profile.id);
 }
 
-async function getUserEmail(supabase: ReturnType<typeof createClient>, userId: string) {
+async function getUserEmail(supabase: any, userId: string) {
   const { data, error } = await supabase.auth.admin.getUserById(userId);
   if (error) {
     console.error(`No se pudo obtener el email del usuario ${userId}: ${error.message}`);
@@ -89,7 +91,7 @@ async function sendEmail(to: string, title: string, startDate: string) {
 }
 
 async function createReminder(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   event: { id: string; user_id: string | null; source: string; title: string; start_date: string },
   recipientId: string,
   reminder: (typeof REMINDER_WINDOWS)[number],
