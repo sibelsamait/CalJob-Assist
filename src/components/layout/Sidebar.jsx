@@ -38,40 +38,40 @@ const TOOL_ITEMS = [
     visible: (permissions) => permissions.canViewCalculators,
   },
   {
-    href: '/dashboard/tramites',
+    href: '/tramites',
     label: 'Trámites',
     icon: Files,
     visible: (permissions) => permissions.planCaps.canUseTramites || permissions.isStaff,
     disabled: (featureFlags, permissions) => permissions.isTeamMember && !featureFlags.tramites,
   },
   {
-    href: '/dashboard/mediaciones',
+    href: '/mediaciones',
     label: 'Mediaciones',
     icon: Scale,
     visible: (permissions) => permissions.planCaps.canUseMediaciones || permissions.isStaff,
     disabled: (featureFlags, permissions) => permissions.isTeamMember && !featureFlags.mediaciones,
   },
   {
-    href: '/dashboard/biblioteca',
+    href: '/biblioteca',
     label: 'Biblioteca',
     icon: BookOpen,
     visible: (permissions) => permissions.canViewLibrary || permissions.isStaff,
     disabled: (featureFlags, permissions) => permissions.isTeamMember && !featureFlags.biblioteca,
   },
   {
-    href: '/dashboard/sii',
+    href: '/sii',
     label: 'Guías SII',
     icon: FileText,
     visible: (permissions) => permissions.can('viewSIIGuides'),
   },
   {
-    href: '/dashboard/calendario',
+    href: '/calendario',
     label: 'Calendario',
     icon: CalendarDays,
     visible: (permissions) => permissions.can('viewCalendar'),
   },
   {
-    href: '/dashboard/documentos',
+    href: '/documentos',
     label: 'Documentos',
     icon: FileText,
     visible: (permissions) => permissions.can('viewOwnDocuments') || permissions.isStaff,
@@ -135,7 +135,7 @@ export function Sidebar() {
   const toolsNav = TOOL_ITEMS.filter((item) => item.visible(permissions));
 
   return (
-    <aside className="flex h-screen w-72 flex-col border-r border-slate-200 bg-slate-950 text-slate-100">
+    <aside className="flex h-screen min-h-screen w-72 flex-col border-r border-slate-200 bg-slate-950 text-slate-100">
       <div className="border-b border-white/10 p-5">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-sm font-semibold">
@@ -194,14 +194,14 @@ export function Sidebar() {
         {showTeamSection && (
           <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Equipo</p>
-            <NavItem href="/dashboard/configuracion/equipo" label="Mi equipo" icon={Users} active={pathname === '/dashboard/configuracion/equipo'} />
+            <NavItem href="/configuracion/equipo" label="Mi equipo" icon={Users} active={pathname === '/configuracion/equipo'} />
           </div>
         )}
       </div>
 
       <div className="border-t border-white/10 p-3 space-y-2">
         <Link
-          href="/dashboard/configuracion"
+          href="/configuracion"
           className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/10 hover:shadow-md"
         >
           <span className="flex items-center gap-2">
@@ -211,7 +211,7 @@ export function Sidebar() {
           <ChevronRight className="h-4 w-4" />
         </Link>
         <Link
-          href="/dashboard/tickets"
+          href="/tickets"
           className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/10 hover:shadow-md"
         >
           <span className="flex items-center gap-2">

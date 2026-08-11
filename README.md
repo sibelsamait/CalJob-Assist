@@ -93,4 +93,4 @@ src/
 ---
 
 ## Créditos
-Desarrollado por **Sibel Sama** · CalJob Assist © 2026** ola k talca como andamio yo bien y tu
+Desarrollado por **Sibel Sama** · CalJob Assist © 2026
