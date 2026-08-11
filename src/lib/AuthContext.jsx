@@ -39,30 +39,17 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
 
+    const normalizedRole = profileData.role === 'admin' ? 'admin' : 'user';
+    const normalizedPlan = normalizedRole === 'admin' ? 'internal' : 'enterprise';
+
     const baseProfile = {
       ...profileData,
+      role: normalizedRole,
+      plan: normalizedPlan,
       license_metadata: null,
       license_ends_at: null,
-      license_active: ['admin', 'tecnico'].includes(profileData.role),
+      license_active: normalizedRole === 'admin',
     };
-
-    if (['plan_owner', 'team_member'].includes(profileData.role)) {
-      const { data: licenseData } = await supabaseClient
-        .from('licenses')
-        .select('plan, status, ends_at, metadata')
-        .eq('company_id', profileData.company_id)
-        .eq('status', 'active')
-        .or(`ends_at.is.null,ends_at.gt.${new Date().toISOString()}`)
-        .single();
-
-      setProfile({
-        ...baseProfile,
-        license_metadata: licenseData?.metadata ?? null,
-        license_ends_at: licenseData?.ends_at ?? null,
-        license_active: Boolean(licenseData),
-      });
-      return null;
-    }
 
     setProfile(baseProfile);
     return null;
@@ -112,8 +99,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isAdmin = profile?.role === 'admin';
-  const isTecnico = profile?.role === 'tecnico';
-  const isStaff = isAdmin || isTecnico;
+  const isStaff = isAdmin;
 
   const value = {
     user,
@@ -121,7 +107,6 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     isLoading,
     isAdmin,
-    isTecnico,
     isStaff,
     signOut,
     refetchProfile: () => user && fetchProfile(user.id),

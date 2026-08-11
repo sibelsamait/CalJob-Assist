@@ -7,8 +7,8 @@
 create table if not exists public.profiles (
   id          uuid primary key references auth.users(id) on delete cascade,
   full_name   text,
-  role        text not null default 'user' check (role in ('user','tecnico','admin')),
-  plan        text not null default 'personal' check (plan in ('personal','team','enterprise','internal')),
+  role        text not null default 'user' check (role in ('user','admin')),
+  plan        text not null default 'enterprise' check (plan in ('enterprise','internal')),
   company_id  uuid,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
@@ -40,7 +40,7 @@ create table if not exists public.companies (
   name          text not null,
   rut           text unique not null,
   contact_email text,
-  plan          text not null default 'personal' check (plan in ('personal','team','enterprise')),
+  plan          text not null default 'enterprise' check (plan in ('enterprise')),
   status        text not null default 'trial' check (status in ('active','trial','suspended','inactive')),
   users_count   int not null default 0,
   created_at    timestamptz not null default now()
@@ -99,7 +99,7 @@ alter table public.payment_requests enable row level security;
 create policy "insert_payment_request" on public.payment_requests for insert with check (user_id = auth.uid());
 create policy "select_own_payment_requests" on public.payment_requests for select using (user_id = auth.uid());
 create policy "staff_all_payment_requests" on public.payment_requests for all using (
-  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('admin','tecnico'))
+  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
 );
 
 -- 5. SEARCH HISTORY
@@ -245,6 +245,31 @@ create policy "staff_all_tickets" on public.tickets for all using (
 create policy "user_own_tickets" on public.tickets for select using (user_id = auth.uid());
 create policy "user_create_ticket" on public.tickets for insert with check (user_id = auth.uid());
 create policy "anon_create_ticket" on public.tickets for insert with check (user_id is null and user_email is not null);
+
+-- 11. LEGAL FAVORITES
+create table if not exists public.legal_favorites (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null references auth.users(id) on delete cascade,
+  favorite_key  text not null,
+  source        text not null default 'bcn',
+  article_id    text not null,
+  part_id       text,
+  title         text,
+  law_title     text,
+  category      text,
+  summary       text,
+  content       text,
+  source_path   text,
+  metadata      jsonb,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+alter table public.legal_favorites enable row level security;
+create unique index if not exists legal_favorites_user_key_idx on public.legal_favorites (user_id, favorite_key);
+create policy "user_own_legal_favorites" on public.legal_favorites for select using (user_id = auth.uid());
+create policy "user_insert_legal_favorites" on public.legal_favorites for insert with check (user_id = auth.uid());
+create policy "user_update_legal_favorites" on public.legal_favorites for update using (user_id = auth.uid());
+create policy "user_delete_legal_favorites" on public.legal_favorites for delete using (user_id = auth.uid());
 
 -- 5. AUDIT LOG (inmutable)
 create table if not exists public.audit_log (

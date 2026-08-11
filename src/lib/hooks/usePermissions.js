@@ -7,62 +7,48 @@ const CAPABILITIES = {
   managePlatformBilling: ['admin'],
   viewAuditLogAll: ['admin'],
   assignRoles: ['admin'],
-  bypassBilling: ['admin', 'tecnico'],
+  bypassBilling: ['admin'],
 
-  accessTechPanel: ['admin', 'tecnico'],
-  viewAllTickets: ['admin', 'tecnico'],
-  resolveTickets: ['admin', 'tecnico'],
-  viewAllCompanies: ['admin', 'tecnico'],
-  viewUserProfiles: ['admin', 'tecnico'],
-  viewSystemLogs: ['admin', 'tecnico'],
+  accessTechPanel: ['admin'],
+  viewAllTickets: ['admin'],
+  resolveTickets: ['admin'],
+  viewAllCompanies: ['admin'],
+  viewUserProfiles: ['admin'],
+  viewSystemLogs: ['admin'],
 
-  viewOwnBilling: ['admin', 'plan_owner'],
-  manageSubscription: ['admin', 'plan_owner'],
-  inviteTeamMembers: ['admin', 'plan_owner'],
-  manageTeamPermissions: ['admin', 'plan_owner'],
-  viewTeamMemberList: ['admin', 'plan_owner'],
+  viewOwnBilling: ['admin'],
+  manageSubscription: ['admin'],
+  inviteTeamMembers: ['admin'],
+  manageTeamPermissions: ['admin'],
+  viewTeamMemberList: ['admin'],
 
-  useCalculators: ['admin', 'tecnico', 'plan_owner', 'team_member', 'user', 'readonly'],
-  saveCalculations: ['admin', 'tecnico', 'plan_owner', 'team_member'],
-  exportCalculationsPDF: ['admin', 'plan_owner', 'team_member'],
+  useCalculators: ['admin', 'user'],
+  saveCalculations: ['admin', 'user'],
+  exportCalculationsPDF: ['admin', 'user'],
 
-  viewTramites: ['admin', 'tecnico', 'plan_owner', 'team_member'],
-  createTramites: ['admin', 'plan_owner', 'team_member'],
-  viewMediaciones: ['admin', 'tecnico', 'plan_owner', 'team_member'],
-  createMediaciones: ['admin', 'plan_owner', 'team_member'],
+  viewTramites: ['admin', 'user'],
+  createTramites: ['admin', 'user'],
+  viewMediaciones: ['admin', 'user'],
+  createMediaciones: ['admin', 'user'],
 
-  viewLibrary: ['admin', 'tecnico', 'plan_owner', 'team_member'],
-  viewLibraryBasic: ['user', 'readonly'],
+  viewLibrary: ['admin', 'user'],
+  viewLibraryBasic: ['admin', 'user'],
 
-  viewSIIGuides: ['admin', 'tecnico', 'plan_owner', 'team_member', 'readonly'],
+  viewSIIGuides: ['admin', 'user'],
 
-  viewCalendar: ['admin', 'tecnico', 'plan_owner', 'team_member', 'readonly'],
-  createCalendarEvents: ['admin', 'tecnico', 'plan_owner', 'team_member'],
+  viewCalendar: ['admin', 'user'],
+  createCalendarEvents: ['admin', 'user'],
 
-  viewOwnDocuments: ['admin', 'plan_owner', 'team_member'],
-  uploadDocuments: ['admin', 'plan_owner', 'team_member'],
+  viewOwnDocuments: ['admin', 'user'],
+  uploadDocuments: ['admin', 'user'],
 
-  createSupportTicket: ['admin', 'tecnico', 'plan_owner', 'team_member', 'user'],
-  viewOwnTickets: ['admin', 'plan_owner', 'team_member', 'user'],
+  createSupportTicket: ['admin', 'user'],
+  viewOwnTickets: ['admin', 'user'],
 
-  receiveNotifications: ['admin', 'tecnico', 'plan_owner', 'team_member', 'readonly'],
+  receiveNotifications: ['admin', 'user'],
 };
 
 const PLAN_CAPABILITIES = {
-  personal: {
-    maxUsers: 1,
-    canExportPDF: true,
-    canUseMediaciones: false,
-    canUseTramites: true,
-    canUseBiblioteca: true,
-  },
-  team: {
-    maxUsers: 10,
-    canExportPDF: true,
-    canUseMediaciones: true,
-    canUseTramites: true,
-    canUseBiblioteca: true,
-  },
   enterprise: {
     maxUsers: -1,
     canExportPDF: true,
@@ -70,32 +56,15 @@ const PLAN_CAPABILITIES = {
     canUseTramites: true,
     canUseBiblioteca: true,
   },
-  none: {
-    maxUsers: 0,
-    canExportPDF: false,
-    canUseMediaciones: false,
-    canUseTramites: false,
-    canUseBiblioteca: false,
-  },
 };
 
 export function usePermissions() {
   const { profile, role: profileRole, plan: profilePlan } = useProfile();
 
   return useMemo(() => {
-    const role = profileRole || 'user';
-    const plan = profilePlan || 'none';
-    const hasActiveLicense = Boolean(profile?.license_active);
-
-    const effectivePlan = ['admin', 'tecnico'].includes(role)
-      ? 'enterprise'
-      : ['plan_owner', 'team_member'].includes(role)
-      ? hasActiveLicense
-        ? plan
-        : 'none'
-      : role === 'readonly'
-      ? 'none'
-      : plan;
+    const role = profileRole === 'admin' ? 'admin' : 'user';
+    const plan = 'enterprise';
+    const effectivePlan = 'enterprise';
 
     const can = (capability) => {
       const allowed = CAPABILITIES[capability];
@@ -111,19 +80,18 @@ export function usePermissions() {
       effectivePlan,
       can,
       planCaps,
-      needsBilling: !['admin', 'tecnico'].includes(role) && effectivePlan === 'none',
+      needsBilling: false,
       isAdmin: role === 'admin',
-      isTecnico: role === 'tecnico',
-      isPlanOwner: role === 'plan_owner',
-      isTeamMember: role === 'team_member',
-      isStaff: ['admin', 'tecnico'].includes(role),
-      isSubscribed: effectivePlan !== 'none',
-      canViewBilling: can('viewOwnBilling'),
-      canManageTeam: can('manageTeamPermissions') || can('inviteTeamMembers'),
+      isPlanOwner: false,
+      isTeamMember: false,
+      isStaff: role === 'admin',
+      isSubscribed: true,
+      canViewBilling: false,
+      canManageTeam: false,
       canViewCalculators: can('useCalculators'),
       canViewLibrary: can('viewLibrary') || can('viewLibraryBasic'),
-      canAccessAdmin: can('accessPlatformAdmin') || can('accessTechPanel'),
-      canViewTickets: can('viewAllTickets') || can('viewOwnTickets'),
+      canAccessAdmin: role === 'admin',
+      canViewTickets: role === 'admin' || can('viewOwnTickets'),
     };
   }, [profile, profilePlan, profileRole]);
 }

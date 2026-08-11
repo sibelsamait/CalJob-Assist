@@ -1,1 +1,0 @@
-export { default } from '@/app/(billing)/pago/page';

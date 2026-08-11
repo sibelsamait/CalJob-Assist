@@ -1,14 +1,13 @@
 # CalJob Assist Platform
 **"Controla tu vida legal y laboral informado"**
 
-Plataforma SaaS de cálculo laboral chileno para trabajadores, empleadores, mediadores y entidades públicas.
+Plataforma SaaS de cálculo laboral chileno para trabajadores, empleadores, mediadores y entidades públicas.   
 
 ---
 
 ## Stack
 - **Frontend**: Next.js 14 (App Router) + Tailwind CSS + shadcn/ui
 - **Backend/Auth/DB**: Supabase (PostgreSQL + RLS + Storage)
-- **Pagos**: Webpay Plus, Mercado Pago, Flow, Khipu, PayPal
 - **Deploy**: Vercel (conectar repo GitHub)
 
 ---
@@ -20,7 +19,7 @@ npm install
 cp .env.example .env.local   # llenar con tus credenciales
 npm run dev
 ```
-
+  lol
 ---
 
 ## Supabase setup
@@ -31,57 +30,31 @@ npm run dev
 4. Activar proveedor **Google** en Authentication > Providers
 5. Agregar `https://tu-dominio.vercel.app/auth/callback` en Authentication > URL Configuration
 
----
 
-## Secrets y configuración de pasarelas (producción)
+## Variables de entorno necesarias
 
-PayPal:
-- Crear una aplicación en PayPal Developer → Apps & Credentials (live o sandbox).
-- Copiar `Client ID` y `Secret` en `PAYPAL_CLIENT_ID` y `PAYPAL_CLIENT_SECRET`.
-- Configurar `PAYPAL_MODE` a `live` en producción.
-- Crear un webhook en tu app de PayPal y añadir la URL `https://<tu-dominio>/api/payments/webhook/paypal` y copiar el `Webhook ID` en `PAYPAL_WEBHOOK_ID`.
- - Para suscripciones recurrentes: crea un `Plan` en PayPal (Billing Plans) por cada categoría y copia cada `Plan ID` en `PAYPAL_PERSONAL_PLAN_ID` / `PAYPAL_TEAM_PLAN_ID` / `PAYPAL_ENTERPRISE_PLAN_ID` (o sus aliases `PERSONAL_PLAN_ID`, `TEAM_PLAN_ID`, `ENTERPRISE_PLAN_ID`). Usa el endpoint `/api/payments/paypal/subscriptions/:requestId` para crear la suscripción y obtener el enlace de aprobación.
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `BCN_LEYCHILE_API_KEY`
+- `BCN_LEYCHILE_AUTH_HEADER_NAME` (opcional, por defecto `Authorization`)
+- `BCN_LEYCHILE_AUTH_SCHEME` (opcional, por defecto `Bearer`)
+- `RESEND_API_KEY` (opcional, para enviar correos desde el formulario de contacto)
+- `EMAIL_FROM` (opcional, valor por defecto `CalJob Assist <noreply@caljob-assist.cl>`)
+- `CONTACT_ADMIN_EMAIL` (opcional)
+- `WEBHOOK_RETRY_TOKEN` (opcional, usado por las rutas de webhook)
 
-Mercado Pago:
-- Para recibir notificaciones, agrega la URL `https://<tu-dominio>/api/payments/webhook/mercadopago` en tu panel de Mercado Pago (Webhooks) y usa `MERCADO_PAGO_ACCESS_TOKEN`.
-
-Webpay / Transbank:
-- Transbank entrega notificaciones según su integración (IPN/postback). Implementa y verifica usando el SDK oficial de Transbank. Añade la URL `https://<tu-dominio>/api/payments/webhook/webpay` como receptor; en producción preferible usar la librería oficial y validar firma.
-
-Webpay Plus / Transbank:
-- Solicita credenciales a Transbank y coloca `WEBPAY_MALL_ID` y `WEBPAY_API_KEY` en las variables de entorno.
-
-Mercado Pago:
-- Crear una cuenta de empresa en Mercado Pago y obtener `ACCESS_TOKEN`, colócalo en `MERCADO_PAGO_ACCESS_TOKEN`.
-
-Flow, Fintoc, Khipu:
-- Solicita API keys según documentación oficial y colócalas en `FLOW_API_KEY`, `FINTOC_API_KEY`, `KHIPU_API_KEY`.
-
-Recomendación de despliegue:
-- Añade un job programado (Vercel Cron, GitHub Actions, o un cron en tu servidor) que llame al endpoint `/api/payments/cron/subscriptions` cada día para expirar suscripciones vencidas.
-
-Ejemplo (curl) para programar/ejecutar manualmente:
-```bash
-curl -X POST https://<tu-dominio>/api/payments/cron/subscriptions
-```
-
-Webhook y automatización:
-- El endpoint `/api/payments/webhook/paypal` valida la firma contra la API de PayPal y actualiza `payment_requests` y `licenses`.
-- Para otros proveedores, crea endpoints equivalentes o envía un payload al endpoint genérico `/api/payments/webhook` con `{ requestId, provider, status, externalId }`.
-
-
-## Roles de usuario
+## Roles de usuario mm
 
 | Rol | Acceso |
 |-----|--------|
-| `user` | Dashboard de cálculos, historial, documentos propios |
-| `tecnico` | + Panel admin (tickets, empresas, suscripciones) |
-| `admin` | + Cambiar roles, gestionar devoluciones, acceso total |
+| `user` | Acceso completo a la plataforma, calculadoras, documentos, tickets y herramientas laborales |
+| `admin` | + Panel administrativo y gestión global |
 
-El panel admin se accede en `/admin`. El login detecta el rol y redirige automáticamente.
+El panel admin se accede en `/admin`. El login detecta el rol y redirige automáticamente
 
-Para asignar rol admin manualmente (primer admin):
-```sql
+Para asignar rol admin manualmente (primer admin): 
+```sql  
 update public.profiles set role = 'admin' where id = 'uuid-del-usuario';
 ```
 
@@ -120,4 +93,4 @@ src/
 ---
 
 ## Créditos
-Desarrollado por **Sibel Sama** · CalJob Assist © 2026
+Desarrollado por **Sibel Sama** · CalJob Assist © 2026** ola k talca como andamio yo bien y tu

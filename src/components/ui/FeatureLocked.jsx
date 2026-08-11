@@ -2,10 +2,10 @@ import { Lock } from 'lucide-react';
 
 const FEATURE_MESSAGES = {
   plan: {
-    title: 'Función no incluida en tu plan',
-    body: 'Actualiza tu plan para acceder a esta funcionalidad.',
-    cta: 'Ver planes',
-    href: '/billing/planes',
+    title: 'Función no disponible',
+    body: 'Esta funcionalidad se retiró del flujo anterior de suscripción.',
+    cta: 'Ir al inicio',
+    href: '/',
     showCTA: true,
   },
   team_admin: {

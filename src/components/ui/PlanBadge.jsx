@@ -1,8 +1,8 @@
 import { PLANS } from '@/lib/constants/plans';
 
 export function PlanBadge({ plan, className = '' }) {
-  const normalizedPlan = plan || 'personal';
-  const config = PLANS[normalizedPlan] || PLANS.personal;
+  const normalizedPlan = plan === 'internal' ? 'internal' : 'enterprise';
+  const config = PLANS[normalizedPlan] || { label: 'Gratis', color: '#003087' };
 
   return (
     <span

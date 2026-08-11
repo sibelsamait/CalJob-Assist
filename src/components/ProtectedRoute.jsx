@@ -12,7 +12,7 @@ export default function ProtectedRoute({
   redirectTo = '/login',
 }) {
   const { user, isLoading: loading } = useContext(AuthContext);
-  const { can, needsBilling, isStaff, role } = usePermissions();
+  const { can, isStaff, role } = usePermissions();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -26,11 +26,6 @@ export default function ProtectedRoute({
 
     if (isStaff) return;
 
-    if (needsBilling) {
-      router.replace('/billing/planes?reason=no_plan');
-      return;
-    }
-
     if (requiredCapability && !can(requiredCapability)) {
       router.replace('/dashboard?error=no_permission');
       return;
@@ -40,7 +35,7 @@ export default function ProtectedRoute({
       router.replace('/dashboard?error=no_permission');
       return;
     }
-  }, [user, loading, isStaff, needsBilling, can, role, requiredCapability, requiredRoles, router, redirectTo, pathname]);
+  }, [user, loading, isStaff, can, role, requiredCapability, requiredRoles, router, redirectTo, pathname]);
 
   if (loading) return <LoadingSkeleton />;
 

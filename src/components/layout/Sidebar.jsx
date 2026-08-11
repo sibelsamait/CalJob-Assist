@@ -117,8 +117,7 @@ export function Sidebar() {
   const featureFlags = useFeatureFlags();
 
   const isStaff = permissions.isStaff;
-  const isPlanOwner = permissions.isPlanOwner;
-  const showTeamSection = isPlanOwner && permissions.planCaps.maxUsers !== 0;
+  const showTeamSection = false;
 
   const adminNav = [
     { href: '/admin', label: 'Panel admin', icon: ShieldCheck },
@@ -201,18 +200,6 @@ export function Sidebar() {
       </div>
 
       <div className="border-t border-white/10 p-3 space-y-2">
-        {isPlanOwner && (
-          <Link
-            href="/billing/portal"
-            className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/10 hover:shadow-md"
-          >
-            <span className="flex items-center gap-2">
-              <CircleDollarSign className="h-4 w-4" />
-              Mi suscripción
-            </span>
-            <ChevronRight className="h-4 w-4" />
-          </Link>
-        )}
         <Link
           href="/dashboard/configuracion"
           className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/10 hover:shadow-md"

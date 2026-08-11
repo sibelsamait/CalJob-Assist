@@ -10,7 +10,7 @@ export function useProfile() {
     isAuthenticated,
     isLoading,
     role: profile?.role ?? 'user',
-    plan: profile?.plan ?? 'personal',
+    plan: profile?.plan ?? 'enterprise',
     fullName: profile?.full_name || user?.email || 'Usuario',
     organization: profile?.company_name || 'Sin organización',
   }), [user, profile, isAuthenticated, isLoading]);
