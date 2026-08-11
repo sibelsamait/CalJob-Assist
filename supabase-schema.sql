@@ -7,6 +7,7 @@
 create table if not exists public.profiles (
   id          uuid primary key references auth.users(id) on delete cascade,
   full_name   text,
+  rut         text,
   role        text not null default 'user' check (role in ('user','admin')),
   plan        text not null default 'enterprise' check (plan in ('enterprise','internal')),
   company_id  uuid,

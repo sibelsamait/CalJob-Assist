@@ -17,12 +17,14 @@ export default function ConfigurationPage() {
   const { toast } = useToast();
 
   const [fullName, setFullName] = useState('');
+  const [rut, setRut] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     setFullName(profile?.full_name || '');
-  }, [profile?.full_name]);
+    setRut(profile?.rut || '');
+  }, [profile?.full_name, profile?.rut]);
 
   const save = async (event) => {
     event.preventDefault();
@@ -32,16 +34,28 @@ export default function ConfigurationPage() {
       return;
     }
 
+    const normalizedFullName = fullName.trim();
+    const normalizedRut = rut.trim();
+
+    if (!normalizedFullName || !normalizedRut) {
+      setError('Debes completar tu nombre completo y tu RUT para continuar.');
+      return;
+    }
+
     setSaving(true);
     setError('');
 
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({
-        full_name: fullName.trim(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', user.id);
+      .upsert(
+        {
+          id: user.id,
+          full_name: normalizedFullName,
+          rut: normalizedRut,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' }
+      );
 
     if (updateError) {
       setError(updateError.message);
@@ -77,6 +91,17 @@ export default function ConfigurationPage() {
                 value={fullName}
                 onChange={(event) => setFullName(event.target.value)}
                 className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                placeholder="Ej: Juan Carlos Pérez"
+              />
+            </label>
+
+            <label className="block text-sm font-medium text-slate-700">
+              RUT
+              <input
+                value={rut}
+                onChange={(event) => setRut(event.target.value)}
+                className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5"
+                placeholder="12.345.678-9"
               />
             </label>
 
