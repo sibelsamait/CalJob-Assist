@@ -170,9 +170,10 @@ export default function LibraryPage() {
                   </div>
                 </div>
 
-                <Link href={`/biblioteca/${encodeURIComponent(articleId)}`} className="mt-5 block">
+                <Link href={`/biblioteca/${encodeURIComponent(articleId)}${item.idParte ? `?idParte=${encodeURIComponent(item.idParte)}` : ''}`} className="mt-5 block">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{item.category}</p>
                   <h2 className="mt-2 text-lg font-semibold text-slate-900">{item.title}</h2>
+                  {item.idParte ? <p className="mt-1 text-xs uppercase tracking-[0.16em] text-slate-500">Artículo / Parte: {item.idParte}</p> : null}
                   <p className="mt-2 text-sm leading-6 text-slate-600">{item.summary || 'Sin resumen disponible.'}</p>
                 </Link>
               </article>

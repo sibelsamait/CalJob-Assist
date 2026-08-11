@@ -56,8 +56,68 @@ export async function readBcnResponseBody(response) {
   try {
     return { kind: 'json', data: JSON.parse(text) };
   } catch {
+    const trimmed = text.trim();
+    if (trimmed.startsWith('<')) {
+      return { kind: 'xml', data: trimmed };
+    }
     return { kind: 'text', data: text };
   }
+}
+
+function parseXmlString(xmlString) {
+  if (typeof xmlString !== 'string' || !xmlString.trim()) return null;
+  if (typeof globalThis.DOMParser === 'undefined') return null;
+
+  const parser = new DOMParser();
+  const document = parser.parseFromString(xmlString, 'application/xml');
+  if (document.querySelector('parsererror')) return null;
+  return document;
+}
+
+function xmlText(node, names) {
+  if (!node || !Array.isArray(names)) return '';
+  for (const name of names) {
+    const el = node.querySelector(name);
+    if (el?.textContent?.trim()) return el.textContent.trim();
+  }
+  return '';
+}
+
+function extractBcnMessage(body) {
+  if (!body) return null;
+  if (body.kind === 'json' && body.data) {
+    if (typeof body.data === 'string') return body.data;
+    if (Array.isArray(body.data)) return JSON.stringify(body.data);
+    if (typeof body.data === 'object' && body.data !== null) {
+      return body.data.message || body.data.error || body.data.descripcion || JSON.stringify(body.data);
+    }
+  }
+  if (body.kind === 'xml' || body.kind === 'text') {
+    return String(body.data).trim();
+  }
+  return null;
+}
+
+function formatBcnErrorMessage(response, body) {
+  if (response.status === 401 || response.status === 403) {
+    return 'Acceso denegado a BCN. Revisa BCN_LEYCHILE_API_KEY y permisos.';
+  }
+  if (response.status === 404) {
+    return 'No se encontró la norma en BCN.';
+  }
+  if (response.status === 429) {
+    return 'Límite de consultas BCN excedido. Intenta otra vez más tarde.';
+  }
+  if (response.status >= 500) {
+    return 'Error en el servicio BCN. Intenta de nuevo más tarde.';
+  }
+
+  const detail = extractBcnMessage(body);
+  if (detail) {
+    return `No se pudo consultar BCN (${response.status}). ${detail}`;
+  }
+
+  return `No se pudo consultar BCN (${response.status}).`;
 }
 
 export async function fetchBcnEndpoint(pathSegments, searchParams = {}, { fallbackPaths = [] } = {}) {
@@ -92,10 +152,11 @@ export async function fetchBcnEndpoint(pathSegments, searchParams = {}, { fallba
       status: response.status,
       url: url.toString(),
       body,
+      message: formatBcnErrorMessage(response, body),
     };
   }
 
-  const error = new Error('No se pudo consultar BCN');
+  const error = new Error(lastError?.message || 'No se pudo consultar BCN');
   error.cause = lastError;
   throw error;
 }
@@ -155,11 +216,30 @@ export function normalizeBcnSearchResults(payload) {
 }
 
 export function normalizeBcnNorma(payload) {
-  const root = payload?.data ?? payload?.norma ?? payload?.resultado ?? payload;
+  let root = payload?.data ?? payload?.norma ?? payload?.resultado ?? payload;
+
+  if (typeof root === 'string') {
+    const xmlDocument = parseXmlString(root);
+    if (xmlDocument) {
+      const xmlRoot = xmlDocument.documentElement;
+      root = {
+        idNorma: xmlText(xmlRoot, ['idNorma', 'id_norma', 'id']),
+        titulo: xmlText(xmlRoot, ['titulo', 'title', 'nombre', 'denominacion', 'descripcion']),
+        categoria: xmlText(xmlRoot, ['categoria', 'category', 'tipo']),
+        resumen: xmlText(xmlRoot, ['resumen', 'summary', 'descripcion', 'glosa']),
+        texto: xmlText(xmlRoot, ['texto', 'contenido', 'html', 'body', 'textoPlano']),
+        fechaActualizacion: xmlText(xmlRoot, ['fechaActualizacion', 'fecha_publicacion', 'fechaPublicacion', 'fecha']),
+        tree: [],
+        raw: root,
+      };
+    }
+  }
+
   const treeNodes = pickArray(root, ['articulos', 'children', 'hijos', 'nodos', 'partes', 'estructura']);
 
   return {
     idNorma: firstText(root?.idNorma, root?.id_norma, root?.id, payload?.idNorma, payload?.id_norma),
+    idParte: firstText(root?.idParte, root?.id_parte, root?.idParte, root?.id_parte, root?.idParte, payload?.idParte, payload?.id_parte) || null,
     title: firstText(root?.titulo, root?.title, root?.nombre, root?.denominacion, root?.descripcion) || 'Norma BCN',
     category: firstText(root?.categoria, root?.category, root?.tipo) || 'Norma',
     summary: firstText(root?.resumen, root?.summary, root?.descripcion, root?.glosa),

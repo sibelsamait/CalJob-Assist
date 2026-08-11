@@ -1,1 +1,1 @@
-{"version":1,"functions":{"/api/economic":{},"/api/health":{},"/api/licenses/check":{},"/api/contact":{},"/api/webhooks/deliveries":{},"/api/webhooks/retry":{},"/reset-password":{},"/api/webhooks/drive":{}}}
+{"version":1,"functions":{"/api/economic":{},"/api/health":{},"/api/legal/bcn/[...path]":{},"/api/legal/favorites":{},"/api/legal/norma/[id]":{},"/api/legal/search":{},"/api/contact":{},"/api/legal/tree/[id]":{},"/api/licenses/check":{},"/api/webhooks/deliveries":{},"/api/webhooks/drive":{},"/api/webhooks/retry":{},"/reset-password":{}}}

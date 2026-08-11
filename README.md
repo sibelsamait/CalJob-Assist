@@ -1,7 +1,7 @@
 # CalJob Assist
 **"Controla tu vida legal y laboral informado"**
 
-Plataforma SaaS de cálculo laboral chileno para trabajadores, empleadores, mediadores y entidades públicas.  
+Plataforma SaaS de cálculo laboral chileno para trabajadores, empleadores, mediadores y entidades públicas.   
 
 ---
 
@@ -19,7 +19,7 @@ npm install
 cp .env.example .env.local   # llenar con tus credenciales
 npm run dev
 ```
-
+  lol
 ---
 
 ## Supabase setup
@@ -31,7 +31,20 @@ npm run dev
 5. Agregar `https://tu-dominio.vercel.app/auth/callback` en Authentication > URL Configuration
 
 
-## Roles de usuario
+## Variables de entorno necesarias
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `BCN_LEYCHILE_API_KEY`
+- `BCN_LEYCHILE_AUTH_HEADER_NAME` (opcional, por defecto `Authorization`)
+- `BCN_LEYCHILE_AUTH_SCHEME` (opcional, por defecto `Bearer`)
+- `RESEND_API_KEY` (opcional, para enviar correos desde el formulario de contacto)
+- `EMAIL_FROM` (opcional, valor por defecto `CalJob Assist <noreply@caljob-assist.cl>`)
+- `CONTACT_ADMIN_EMAIL` (opcional)
+- `WEBHOOK_RETRY_TOKEN` (opcional, usado por las rutas de webhook)
+
+## Roles de usuario mm
 
 | Rol | Acceso |
 |-----|--------|

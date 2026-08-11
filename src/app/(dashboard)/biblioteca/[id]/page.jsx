@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowLeft, BookOpen, Loader2, Star } from 'lucide-react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -29,6 +29,8 @@ function TreeNode({ node, level = 0 }) {
 
 export default function LegalDetailPage() {
   const { id } = useParams();
+  const searchParams = useSearchParams();
+  const idParteQuery = searchParams.get('idParte') || '';
   const permissions = usePermissions();
   const { isAuthenticated } = useAuth();
   const localFallback = LEGAL_LIBRARY.find((entry) => entry.id === id);
@@ -40,7 +42,8 @@ export default function LegalDetailPage() {
   const [error, setError] = useState('');
 
   const articleId = detail?.idNorma || id;
-  const favoriteKey = `${articleId || ''}:`;
+  const partId = detail?.idParte || idParteQuery || '';
+  const favoriteKey = `${articleId || ''}:${partId}`;
   const isFavorite = useMemo(() => favorites.some((favorite) => favorite.favorite_key === favoriteKey), [favorites, favoriteKey]);
 
   useEffect(() => {
@@ -65,7 +68,7 @@ export default function LegalDetailPage() {
     let cancelled = false;
 
     Promise.all([
-      fetch(`/api/legal/norma/${encodeURIComponent(id)}`).then(async (response) => {
+      fetch(`/api/legal/norma/${encodeURIComponent(id)}${idParteQuery ? `?idParte=${encodeURIComponent(idParteQuery)}` : ''}`).then(async (response) => {
         const payload = await response.json();
         if (!response.ok) throw new Error(payload.error || 'No se pudo cargar la norma.');
         return payload;
@@ -106,7 +109,7 @@ export default function LegalDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [id, localFallback, permissions.canViewLibrary]);
+  }, [id, localFallback, permissions.canViewLibrary, idParteQuery]);
 
   const toggleFavorite = async () => {
     if (!detail) return;
