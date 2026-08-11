@@ -38,10 +38,10 @@ npm run dev
 | `user` | Acceso completo a la plataforma, calculadoras, documentos, tickets y herramientas laborales |
 | `admin` | + Panel administrativo y gestión global |
 
-El panel admin se accede en `/admin`. El login detecta el rol y redirige automáticamente. 
+El panel admin se accede en `/admin`. El login detecta el rol y redirige automáticamente
 
 Para asignar rol admin manualmente (primer admin): 
-```sql
+```sql  
 update public.profiles set role = 'admin' where id = 'uuid-del-usuario';
 ```
 
